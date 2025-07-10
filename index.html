@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -986,6 +985,26 @@
             border-color: var(--secondary);
             background: rgba(255, 215, 0, 0.1);
         }
+        
+        /* Nuevos estilos para sección guardadas */
+        .auditoria-guardada {
+            background: #fff9e6;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .sync-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+        
+        .sync-online { background-color: var(--success); }
+        .sync-offline { background-color: var(--danger); }
     </style>
 </head>
 <body>
@@ -1068,11 +1087,16 @@
                         <li><a href="#" class="nav-link" data-page="dashboard"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
                         <li><a href="#" class="nav-link" data-page="reportes"><i class="fas fa-file-pdf"></i> Reportes</a></li>
                         <li><a href="#" class="nav-link" data-page="exportar"><i class="fas fa-file-export"></i> Exportar</a></li>
-                        <!-- Nuevo enlace a Cuenta -->
                         <li><a href="#" class="nav-link" data-page="cuenta"><i class="fas fa-user"></i> Cuenta</a></li>
+                        <!-- Nuevo enlace a Guardadas -->
+                        <li><a href="#" class="nav-link" data-page="guardadas"><i class="fas fa-save"></i> Guardadas</a></li>
                     </ul>
                 </nav>
                 <div class="user-info">
+                    <span id="sync-status-indicator" class="sync-status sync-offline"></span>
+                    <button id="btn-sync" style="display:none;">
+                        <i class="fas fa-sync-alt"></i> Sincronizar
+                    </button>
                     <img id="user-photo" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="Foto perfil">
                     <span id="user-name">Usuario</span>
                     <button id="btn-logout"><i class="fas fa-sign-out-alt"></i> Salir</button>
@@ -1507,6 +1531,16 @@
                     </div>
                 </div>
             </section>
+            
+            <!-- Nueva Sección: Auditorías Guardadas -->
+            <section id="guardadas" class="page-section">
+                <div class="form-section">
+                    <h2 class="form-title"><i class="fas fa-save"></i> Auditorías Guardadas</h2>
+                    <div id="auditorias-guardadas-container">
+                        <!-- Auditorías se cargarán aquí -->
+                    </div>
+                </div>
+            </section>
         </div>
         
         <!-- Footer -->
@@ -1526,6 +1560,7 @@
                         <li><a href="#" class="nav-link" data-page="dashboard"><i class="fas fa-chart-bar"></i> Dashboard</a></li>
                         <li><a href="#" class="nav-link" data-page="reportes"><i class="fas fa-file-pdf"></i> Reportes</a></li>
                         <li><a href="#" class="nav-link" data-page="exportar"><i class="fas fa-file-export"></i> Exportar</a></li>
+                        <li><a href="#" class="nav-link" data-page="guardadas"><i class="fas fa-save"></i> Guardadas</a></li>
                     </ul>
                 </div>
                 
@@ -1547,7 +1582,7 @@
     
     <script>
         // URL de tu Google Apps Script
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzu3COfRM0E8f8vQlgXXzqTOXS_s8FZEWwt2JtCqBng5Y1sRACNfay60Mi158SJxlpx/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxxNVIK8OYeDTDtP9baKTdtZCfIHEe628j1jE3KeIyDAb1Mj3U3rJUzaybtvX-xX-u/exec";
         
         // Variables globales
         let auditorData = {};
@@ -1560,8 +1595,15 @@
         let allAreas = [];
         let auditores = [];
         
+        // Base de datos local (IndexedDB)
+        let db;
+        const DB_NAME = "AuditoriaPPRDB";
+        const DB_VERSION = 1;
+        const STORE_AUDITS = "auditorias";
+        const STORE_EVIDENCE = "evidencias";
+        
         // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             // Configurar fecha actual
             const today = new Date();
             document.getElementById('fecha-auditoria').valueAsDate = today;
@@ -1569,6 +1611,9 @@
             document.getElementById('filtro-fecha-fin-reporte').valueAsDate = today;
             document.getElementById('fecha-inicio-exportar').valueAsDate = new Date(today.getFullYear(), today.getMonth(), 1);
             document.getElementById('fecha-fin-exportar').valueAsDate = today;
+            
+            // Inicializar base de datos local
+            await initDB();
             
             // Event listeners para navegación
             document.querySelectorAll('.nav-link').forEach(link => {
@@ -1592,6 +1637,8 @@
                         cargarTodasLasAreas();
                     } else if (page === 'cuenta') {
                         loadProfile();
+                    } else if (page === 'guardadas') {
+                        cargarAuditoriasGuardadas();
                     }
                 });
             });
@@ -1661,7 +1708,261 @@
             // Cargar todas las áreas al iniciar
             cargarTodasLasAreas();
             cargarAuditores();
+            
+            // Inicializar estado de conexión
+            updateConnectionStatus();
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            
+            // Botón de sincronización manual
+            document.getElementById('btn-sync').addEventListener('click', syncOfflineData);
+            
+            // Botón para guardar progreso
+            document.getElementById('guardar-progreso').addEventListener('click', guardarProgreso);
         });
+        
+        // ================================================
+        // FUNCIONES PARA MANEJO OFFLINE
+        // ================================================
+        
+        // Inicializar IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                    
+                    // Crear almacén para auditorías
+                    if (!db.objectStoreNames.contains(STORE_AUDITS)) {
+                        const auditsStore = db.createObjectStore(STORE_AUDITS, {
+                            keyPath: "id",
+                            autoIncrement: true
+                        });
+                        auditsStore.createIndex("status", "status", { unique: false });
+                    }
+                    
+                    // Crear almacén para evidencias
+                    if (!db.objectStoreNames.contains(STORE_EVIDENCE)) {
+                        const evidenceStore = db.createObjectStore(STORE_EVIDENCE, {
+                            keyPath: "id",
+                            autoIncrement: true
+                        });
+                        evidenceStore.createIndex("auditId", "auditId", { unique: false });
+                        evidenceStore.createIndex("preguntaId", "preguntaId", { unique: false });
+                    }
+                };
+                
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve();
+                };
+                
+                request.onerror = (event) => {
+                    reject("Error al abrir la base de datos: " + event.target.error);
+                };
+            });
+        }
+        
+        // Guardar auditoría en IndexedDB
+        async function saveAuditToLocalDB(auditData, status = "draft") {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_AUDITS], "readwrite");
+                const store = transaction.objectStore(STORE_AUDITS);
+                
+                const auditRecord = {
+                    ...auditData,
+                    timestamp: new Date(),
+                    status: status
+                };
+                
+                const request = store.add(auditRecord);
+                
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Guardar evidencia en IndexedDB
+        async function saveEvidenceToLocalDB(auditId, preguntaId, imageData) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_EVIDENCE], "readwrite");
+                const store = transaction.objectStore(STORE_EVIDENCE);
+                
+                const evidenceRecord = {
+                    auditId: auditId,
+                    preguntaId: preguntaId,
+                    imageData: imageData,
+                    timestamp: new Date()
+                };
+                
+                const request = store.add(evidenceRecord);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Obtener auditorías guardadas
+        async function getSavedAudits() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_AUDITS], "readonly");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const index = store.index("status");
+                const request = index.getAll("draft");
+                
+                request.onsuccess = (event) => resolve(event.target.result || []);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Obtener auditorías pendientes
+        async function getPendingAudits() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_AUDITS], "readonly");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const index = store.index("status");
+                const request = index.getAll("pending");
+                
+                request.onsuccess = (event) => resolve(event.target.result || []);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Obtener evidencias de una auditoría
+        async function getEvidenceForAudit(auditId) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_EVIDENCE], "readonly");
+                const store = transaction.objectStore(STORE_EVIDENCE);
+                const index = store.index("auditId");
+                const request = index.getAll(Number(auditId));
+                
+                request.onsuccess = (event) => resolve(event.target.result || []);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Eliminar auditoría guardada
+        async function deleteSavedAudit(auditId) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_AUDITS], "readwrite");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const request = store.delete(Number(auditId));
+                
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Eliminar evidencia
+        async function deleteEvidence(evidenceId) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_EVIDENCE], "readwrite");
+                const store = transaction.objectStore(STORE_EVIDENCE);
+                const request = store.delete(Number(evidenceId));
+                
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Actualizar estado de conexión
+        function updateConnectionStatus() {
+            const statusIndicator = document.getElementById('sync-status-indicator');
+            const syncButton = document.getElementById('btn-sync');
+            
+            if (navigator.onLine) {
+                statusIndicator.className = 'sync-status sync-online';
+                syncButton.style.display = 'inline-block';
+                // Intentar sincronizar automáticamente
+                setTimeout(syncOfflineData, 3000);
+            } else {
+                statusIndicator.className = 'sync-status sync-offline';
+                syncButton.style.display = 'none';
+            }
+        }
+        
+        // Sincronizar datos offline
+        async function syncOfflineData() {
+            if (!navigator.onLine) {
+                alert("No hay conexión a internet. Conéctate para sincronizar.");
+                return;
+            }
+            
+            try {
+                // 1. Sincronizar auditorías pendientes
+                const pendingAudits = await getPendingAudits();
+                
+                for (const audit of pendingAudits) {
+                    try {
+                        // Enviar auditoría al servidor
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: "submitAudit",
+                                auditor: audit.auditorData.nombre,
+                                unidad: audit.auditorData.unidad,
+                                area: audit.auditorData.area,
+                                fecha: audit.auditorData.fecha,
+                                preguntas: audit.preguntas,
+                                porcCumple: audit.porcCumple,
+                                porcParcial: audit.porcParcial,
+                                porcNoCumple: audit.porcNoCumple,
+                                porcNoAplica: audit.porcNoAplica
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.status === "success") {
+                            // Eliminar de la base de datos local
+                            await deleteSavedAudit(audit.id);
+                        }
+                    } catch (error) {
+                        console.error("Error sincronizando auditoría:", error);
+                    }
+                }
+                
+                // 2. Sincronizar evidencias pendientes
+                const evidence = await getEvidenceForAudit('pending');
+                
+                for (const ev of evidence) {
+                    try {
+                        // Enviar evidencia al servidor
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: "uploadImage",
+                                image: ev.imageData.split(',')[1]
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.status === "success") {
+                            // Actualizar respuesta con URL de evidencia
+                            // (Aquí deberías actualizar la respuesta en la auditoría correspondiente)
+                            
+                            // Eliminar evidencia local
+                            await deleteEvidence(ev.id);
+                        }
+                    } catch (error) {
+                        console.error("Error sincronizando evidencia:", error);
+                    }
+                }
+                
+                alert('Sincronización completada con éxito');
+                cargarAuditoriasGuardadas();
+                
+            } catch (error) {
+                console.error("Error en sincronización:", error);
+                alert('Error durante la sincronización: ' + error.message);
+            }
+        }
+        
+        // ================================================
+        // FUNCIONES EXISTENTES MODIFICADAS
+        // ================================================
         
         // Función para visualizar PDF
         function mostrarPDF(url) {
@@ -1849,7 +2150,7 @@
             }
         }
         
-        // Función para finalizar auditoría con cálculo corregido de porcentajes
+        // Función para finalizar auditoría con soporte offline
         async function finalizarAuditoria() {
             const btn = document.getElementById('finalizar-auditoria');
             btn.disabled = true;
@@ -1870,7 +2171,7 @@
                     }
                 }
                 
-                // CÁLCULO CORREGIDO DE PORCENTAJES (sobre el total de preguntas)
+                // CÁLCULO CORREGIDO DE PORCENTAJES
                 const totalPreguntas = preguntasPorArea.length;
                 const cumple = Object.values(respuestas).filter(r => r.estado === 'cumple').length;
                 const parcial = Object.values(respuestas).filter(r => r.estado === 'parcial').length;
@@ -1935,6 +2236,24 @@
                     });
                 });
                 
+                // Verificar conexión para envío
+                if (!navigator.onLine) {
+                    // Guardar en base de datos local como "pending"
+                    await saveAuditToLocalDB({
+                        auditorData: auditorData,
+                        respuestas: respuestas,
+                        preguntas: preguntasData,
+                        porcCumple: porcCumple,
+                        porcParcial: porcParcial,
+                        porcNoCumple: porcNoCumple,
+                        porcNoAplica: porcNoAplica
+                    }, "pending");
+                    
+                    alert('Auditoría guardada localmente. Se enviará automáticamente cuando se restablezca la conexión.');
+                    showPage('inicio');
+                    return;
+                }
+                
                 const payload = {
                     action: "submitAudit",
                     auditor: auditorData.nombre,
@@ -1978,6 +2297,117 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
+            }
+        }
+        
+        // Guardar progreso de auditoría
+        async function guardarProgreso() {
+            if (!auditorData) {
+                alert('Primero selecciona una unidad y área para auditar');
+                return;
+            }
+            
+            try {
+                const auditId = await saveAuditToLocalDB({
+                    auditorData: auditorData,
+                    respuestas: respuestas,
+                    preguntasPorArea: preguntasPorArea
+                }, "draft");
+                
+                alert(`Progreso guardado (ID: ${auditId}). Puedes continuar más tarde.`);
+                showPage('guardadas');
+                
+            } catch (error) {
+                alert('Error al guardar: ' + error.message);
+            }
+        }
+        
+        // Cargar auditorías guardadas
+        async function cargarAuditoriasGuardadas() {
+            const container = document.getElementById('auditorias-guardadas-container');
+            container.innerHTML = '';
+            
+            try {
+                const savedAudits = await getSavedAudits();
+                
+                if (savedAudits.length === 0) {
+                    container.innerHTML = '<p>No hay auditorías guardadas</p>';
+                    return;
+                }
+                
+                savedAudits.forEach(audit => {
+                    const auditElement = document.createElement('div');
+                    auditElement.className = 'auditoria-guardada';
+                    auditElement.innerHTML = `
+                        <h3>${formatName(audit.auditorData.area)}</h3>
+                        <p><strong>Unidad:</strong> ${formatName(audit.auditorData.unidad)}</p>
+                        <p><strong>Fecha:</strong> ${audit.auditorData.fecha}</p>
+                        <p><strong>Progreso:</strong> ${Object.keys(audit.respuestas).length} / ${audit.preguntasPorArea.length} preguntas</p>
+                        <div class="button-group">
+                            <button class="btn btn-primary continuar-auditoria" data-id="${audit.id}">
+                                <i class="fas fa-edit"></i> Continuar
+                            </button>
+                            <button class="btn btn-danger eliminar-auditoria" data-id="${audit.id}">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(auditElement);
+                });
+                
+                // Event listeners para los botones
+                document.querySelectorAll('.continuar-auditoria').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const auditId = this.getAttribute('data-id');
+                        await cargarAuditoriaGuardada(auditId);
+                    });
+                });
+                
+                document.querySelectorAll('.eliminar-auditoria').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const auditId = this.getAttribute('data-id');
+                        await deleteSavedAudit(auditId);
+                        cargarAuditoriasGuardadas();
+                    });
+                });
+                
+            } catch (error) {
+                container.innerHTML = `<div class="alert alert-error">Error al cargar: ${error.message}</div>`;
+            }
+        }
+        
+        // Cargar una auditoría guardada
+        async function cargarAuditoriaGuardada(auditId) {
+            try {
+                const transaction = db.transaction([STORE_AUDITS], "readonly");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const request = store.get(Number(auditId));
+                
+                request.onsuccess = (event) => {
+                    const audit = event.target.result;
+                    if (!audit) throw new Error("Auditoría no encontrada");
+                    
+                    // Cargar datos en las variables globales
+                    auditorData = audit.auditorData;
+                    respuestas = audit.respuestas;
+                    preguntasPorArea = audit.preguntasPorArea;
+                    
+                    // Actualizar UI
+                    document.getElementById('current-auditor').textContent = auditorData.nombre;
+                    document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
+                    document.getElementById('current-area').textContent = formatName(auditorData.area);
+                    document.getElementById('current-date').textContent = auditorData.fecha;
+                    
+                    // Generar preguntas con respuestas cargadas
+                    generarPreguntas();
+                    
+                    // Mostrar sección de auditoría
+                    showPage('auditoria');
+                };
+                
+            } catch (error) {
+                alert('Error al cargar auditoría: ' + error.message);
             }
         }
         
@@ -2168,7 +2598,7 @@
             showPage('auditoria');
         }
         
-        // Generar preguntas de auditoría
+        // Generar preguntas de auditoría con soporte offline
         function generarPreguntas() {
             const container = document.getElementById('preguntas-container');
             container.innerHTML = '';
@@ -2256,6 +2686,18 @@
                             
                             cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
                             
+                            // Verificar conexión para subir
+                            if (!navigator.onLine) {
+                                // Guardar evidencia localmente
+                                await saveEvidenceToLocalDB(
+                                    'draft', 
+                                    currentPreguntaId, 
+                                    compressedImg
+                                );
+                                alert('Evidencia guardada localmente. Se subirá con conexión.');
+                                return;
+                            }
+                            
                             try {
                                 const response = await fetch(SCRIPT_URL, {
                                     method: 'POST',
@@ -2290,6 +2732,29 @@
                     if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
                     respuestas[pregunta.id].observaciones = e.target.value;
                 });
+                
+                // Cargar respuesta guardada si existe
+                if (respuestas[pregunta.id]) {
+                    const respuesta = respuestas[pregunta.id];
+                    
+                    // Seleccionar opción
+                    if (respuesta.estado) {
+                        const opcion = preguntaElement.querySelector(`.opcion[data-value="${respuesta.estado}"]`);
+                        if (opcion) {
+                            opcion.click();
+                            
+                            // Cargar evidencia si existe
+                            if (respuesta.evidenciaUrl) {
+                                cameraPreview.innerHTML = `<img src="${respuesta.evidenciaUrl}" alt="Evidencia fotográfica">`;
+                            }
+                        }
+                    }
+                    
+                    // Cargar observaciones
+                    if (respuesta.observaciones) {
+                        document.getElementById(`observaciones-${pregunta.id}`).value = respuesta.observaciones;
+                    }
+                }
             });
         }
         
