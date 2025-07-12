@@ -464,11 +464,6 @@
         .stat-danger::before { background: linear-gradient(90deg, var(--danger), #c0392b); }
         .stat-info::before { background: linear-gradient(90deg, var(--info), #2980b9); }
        
-        .stat-success i { color: var(--success); }
-        .stat-warning i { color: var(--warning); }
-        .stat-danger i { color: var(--danger); }
-        .stat-info i { color: var(--info); }
-       
         .stat-label {
             font-size: 0.95rem;
             color: var(--text-light);
@@ -1005,6 +1000,31 @@
        
         .sync-online { background-color: var(--success); }
         .sync-offline { background-color: var(--danger); }
+
+        /* Nuevos estilos para botón de sincronización */
+        #btn-sync {
+            background: linear-gradient(135deg, var(--success) 0%, #219653 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        #btn-sync:hover {
+            background: linear-gradient(135deg, #219653 0%, #1e8449 100%);
+            transform: translateY(-2px);
+        }
+
+        #sync-status-indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -1094,7 +1114,7 @@
                 </nav>
                 <div class="user-info">
                     <span id="sync-status-indicator" class="sync-status sync-offline"></span>
-                    <button id="btn-sync" style="display:none;">
+                    <button id="btn-sync" class="btn btn-success" style="display:none;">
                         <i class="fas fa-sync-alt"></i> Sincronizar
                     </button>
                     <img id="user-photo" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="Foto perfil">
@@ -1284,11 +1304,11 @@
                             </div>
                         </div>
  
-                        <!-- Nuevo gráfico de Pareto para categorías -->
+                        <!-- Nuevo gráfico de barras por área -->
                         <div class="chart-container">
-                            <h3 class="chart-title"><i class="fas fa-chart-line"></i> Pareto por Categoría</h3>
+                            <h3 class="chart-title"><i class="fas fa-chart-line"></i> Cumplimiento por Área</h3>
                             <div class="chart-wrapper">
-                                <canvas id="chart-pareto"></canvas>
+                                <canvas id="chart-areas"></canvas>
                             </div>
                         </div>
                     </div>
@@ -1587,7 +1607,7 @@
         // Variables globales
         let auditorData = {};
         let respuestas = {};
-        let chartDistribucion, chartPreguntas, chartPareto;
+        let chartDistribucion, chartPreguntas, chartAreas;
         let currentUser = null;
         let reportesData = [];
         let preguntasPorArea = [];
@@ -1818,8 +1838,6 @@
             if (navigator.onLine) {
                 statusIndicator.className = 'sync-status sync-online';
                 syncButton.style.display = 'inline-block';
-                // Intentar sincronizar automáticamente
-                setTimeout(syncOfflineData, 3000);
             } else {
                 statusIndicator.className = 'sync-status sync-offline';
                 syncButton.style.display = 'none';
@@ -1990,54 +2008,33 @@
                         }
                     });
                    
-                    // Actualizar gráfico de Pareto (ORDEN CORREGIDO)
-                    if (chartPareto) chartPareto.destroy();
-                    if (data.paretoData && data.paretoData.labels.length > 0) {
-                        const ctxPareto = document.getElementById('chart-pareto').getContext('2d');
+                    // Obtener datos de cumplimiento por área
+                    const responseAreas = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            action: "getCumplimientoPorArea"
+                        })
+                    });
+                   
+                    const dataAreas = await responseAreas.json();
+                   
+                    if (dataAreas.status === "success") {
+                        // Destruir gráfico anterior
+                        if (chartAreas) chartAreas.destroy();
                         
-                        // Ordenar de MAYOR a MENOR (corrección)
-                        const paretoSorted = {
-                            labels: [...data.paretoData.labels],
-                            values: [...data.paretoData.values],
-                            accumulated: [...data.paretoData.accumulated]
-                        };
+                        // Ordenar áreas de mayor a menor cumplimiento
+                        dataAreas.areas.sort((a, b) => b.cumplimiento - a.cumplimiento);
                         
-                        // Ordenar por valores descendentes
-                        const combined = paretoSorted.labels.map((label, i) => ({
-                            label,
-                            value: paretoSorted.values[i],
-                            accumulated: paretoSorted.accumulated[i]
-                        }));
-                        
-                        combined.sort((a, b) => b.value - a.value);
-                        
-                        const sortedLabels = combined.map(item => item.label);
-                        const sortedValues = combined.map(item => item.value);
-                        const sortedAccumulated = combined.map(item => item.accumulated);
-                        
-                        chartPareto = new Chart(ctxPareto, {
+                        const ctxAreas = document.getElementById('chart-areas').getContext('2d');
+                        chartAreas = new Chart(ctxAreas, {
                             type: 'bar',
                             data: {
-                                labels: sortedLabels,
+                                labels: dataAreas.areas.map(item => formatName(item.area)),
                                 datasets: [{
-                                    label: 'Incumplimientos',
-                                    data: sortedValues,
+                                    label: '% Cumplimiento',
+                                    data: dataAreas.areas.map(item => item.cumplimiento),
                                     backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    borderWidth: 1,
-                                    order: 2
-                                }, {
-                                    label: 'Porcentaje Acumulado',
-                                    data: sortedAccumulated,
-                                    type: 'line',
-                                    borderColor: '#FFD700',
-                                    backgroundColor: 'rgba(255, 215, 0, 0.1)',
-                                    borderWidth: 3,
-                                    pointBackgroundColor: '#FFD700',
-                                    pointBorderColor: '#000',
-                                    pointRadius: 5,
-                                    fill: false,
-                                    yAxisID: 'y1',
-                                    order: 1
+                                    borderWidth: 1
                                 }]
                             },
                             options: {
@@ -2046,24 +2043,7 @@
                                 scales: {
                                     y: {
                                         beginAtZero: true,
-                                        title: {
-                                            display: true,
-                                            text: 'Cantidad de Incumplimientos'
-                                        }
-                                    },
-                                    y1: {
-                                        type: 'linear',
-                                        display: true,
-                                        position: 'right',
-                                        beginAtZero: true,
                                         max: 100,
-                                        title: {
-                                            display: true,
-                                            text: 'Porcentaje Acumulado'
-                                        },
-                                        grid: {
-                                            drawOnChartArea: false,
-                                        },
                                         ticks: {
                                             callback: function(value) {
                                                 return value + '%';
@@ -2780,7 +2760,7 @@
         function inicializarGraficos() {
             const ctxDistribucion = document.getElementById('chart-distribucion').getContext('2d');
             const ctxPreguntas = document.getElementById('chart-preguntas').getContext('2d');
-            const ctxPareto = document.getElementById('chart-pareto').getContext('2d');
+            const ctxAreas = document.getElementById('chart-areas').getContext('2d');
            
             chartDistribucion = new Chart(ctxDistribucion, {
                 type: 'doughnut',
@@ -2846,8 +2826,8 @@
                 }
             });
            
-            // Gráfico de Pareto vacío
-            chartPareto = new Chart(ctxPareto, {
+            // Gráfico de áreas vacío
+            chartAreas = new Chart(ctxAreas, {
                 type: 'bar',
                 data: {
                     labels: [],
@@ -2936,7 +2916,7 @@
             document.querySelectorAll('.reporte-item').forEach(item => {
                 item.classList.remove('active');
             });
-            document.querySelector(`.reporte-item[data-id="${reporteId}"]`).classList.add('active');
+            document.querySelector(`.reporte-item[data-id="${reporteId}"]').classList.add('active');
            
             document.getElementById('reporte-auditor').textContent = reporte.auditor;
             document.getElementById('reporte-unidad').textContent = reporte.unidad;
