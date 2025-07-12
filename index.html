@@ -170,6 +170,69 @@
             background: rgba(255, 255, 255, 0.25);
             transform: translateY(-2px);
         }
+
+        /* Nuevo estilo para estado de conexión */
+        .sync-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-right: 10px;
+        }
+       
+        .sync-status {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            box-shadow: 0 0 8px currentColor;
+        }
+       
+        .sync-online { 
+            background-color: var(--success);
+            color: var(--success);
+            animation: pulse-green 2s infinite;
+        }
+       
+        .sync-offline { 
+            background-color: var(--danger);
+            color: var(--danger);
+            animation: pulse-red 2s infinite;
+        }
+       
+        #btn-sync {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: var(--secondary);
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+       
+        #btn-sync:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+        }
+       
+        #btn-sync:active {
+            transform: scale(0.95);
+        }
+       
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(39, 174, 96, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(39, 174, 96, 0); }
+        }
+       
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
        
         /* Formularios modernos */
         .form-section {
@@ -463,6 +526,11 @@
         .stat-warning::before { background: linear-gradient(90deg, var(--warning), #e67e22); }
         .stat-danger::before { background: linear-gradient(90deg, var(--danger), #c0392b); }
         .stat-info::before { background: linear-gradient(90deg, var(--info), #2980b9); }
+       
+        .stat-success i { color: var(--success); }
+        .stat-warning i { color: var(--warning); }
+        .stat-danger i { color: var(--danger); }
+        .stat-info i { color: var(--info); }
        
         .stat-label {
             font-size: 0.95rem;
@@ -989,42 +1057,6 @@
             margin-bottom: 15px;
             border-left: 4px solid var(--secondary);
         }
-       
-        .sync-status {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-left: 10px;
-        }
-       
-        .sync-online { background-color: var(--success); }
-        .sync-offline { background-color: var(--danger); }
-
-        /* Nuevos estilos para botón de sincronización */
-        #btn-sync {
-            background: linear-gradient(135deg, var(--success) 0%, #219653 100%);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        #btn-sync:hover {
-            background: linear-gradient(135deg, #219653 0%, #1e8449 100%);
-            transform: translateY(-2px);
-        }
-
-        #sync-status-indicator {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            margin-right: 10px;
-        }
     </style>
 </head>
 <body>
@@ -1113,10 +1145,12 @@
                     </ul>
                 </nav>
                 <div class="user-info">
-                    <span id="sync-status-indicator" class="sync-status sync-offline"></span>
-                    <button id="btn-sync" class="btn btn-success" style="display:none;">
-                        <i class="fas fa-sync-alt"></i> Sincronizar
-                    </button>
+                    <div class="sync-container">
+                        <span id="sync-status-indicator" class="sync-status sync-offline"></span>
+                        <button id="btn-sync">
+                            <i class="fas fa-sync-alt"></i> Sincronizar
+                        </button>
+                    </div>
                     <img id="user-photo" src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png" alt="Foto perfil">
                     <span id="user-name">Usuario</span>
                     <button id="btn-logout"><i class="fas fa-sign-out-alt"></i> Salir</button>
@@ -1741,10 +1775,10 @@
         });
        
         // ================================================
-        // FUNCIONES PARA MANEJO OFFLINE (CORREGIDAS)
+        // FUNCIONES PARA MANEJO OFFLINE
         // ================================================
        
-        // Inicializar IndexedDB (versión corregida)
+        // Inicializar IndexedDB
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -1773,7 +1807,7 @@
             });
         }
        
-        // Guardar auditoría en IndexedDB (corregido)
+        // Guardar auditoría en IndexedDB
         async function saveAuditToLocalDB(auditData, status = "draft") {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readwrite");
@@ -1792,7 +1826,7 @@
             });
         }
        
-        // Obtener auditorías guardadas (corregido)
+        // Obtener auditorías guardadas
         async function getSavedAudits() {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readonly");
@@ -1805,7 +1839,7 @@
             });
         }
        
-        // Obtener auditorías pendientes (corregido)
+        // Obtener auditorías pendientes
         async function getPendingAudits() {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readonly");
@@ -1818,7 +1852,7 @@
             });
         }
        
-        // Eliminar auditoría guardada (corregido)
+        // Eliminar auditoría guardada
         async function deleteSavedAudit(auditId) {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readwrite");
@@ -1833,18 +1867,17 @@
         // Actualizar estado de conexión
         function updateConnectionStatus() {
             const statusIndicator = document.getElementById('sync-status-indicator');
-            const syncButton = document.getElementById('btn-sync');
            
             if (navigator.onLine) {
                 statusIndicator.className = 'sync-status sync-online';
-                syncButton.style.display = 'inline-block';
+                // Intentar sincronizar automáticamente
+                setTimeout(syncOfflineData, 3000);
             } else {
                 statusIndicator.className = 'sync-status sync-offline';
-                syncButton.style.display = 'none';
             }
         }
        
-        // Sincronizar datos offline (versión corregida)
+        // Sincronizar datos offline
         async function syncOfflineData() {
             if (!navigator.onLine) {
                 alert("No hay conexión a internet. Conéctate para sincronizar.");
@@ -1925,7 +1958,7 @@
         // Función para cargar dashboard con manejo de errores mejorado
         async function cargarDashboard() {
             const loader = document.getElementById('dashboard-loader');
-            const content = document.getElementById('dashboard-content');
+            const content = document.getElementById('dashboard-content");
             const fecha = document.getElementById('filtro-fecha').value;
             const area = document.getElementById('filtro-area').value;
             const unidadSelect = document.getElementById('filtro-unidad');
@@ -2008,52 +2041,42 @@
                         }
                     });
                    
-                    // Obtener datos de cumplimiento por área
-                    const responseAreas = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({
-                            action: "getCumplimientoPorArea"
-                        })
-                    });
-                   
-                    const dataAreas = await responseAreas.json();
-                   
-                    if (dataAreas.status === "success") {
-                        // Destruir gráfico anterior
-                        if (chartAreas) chartAreas.destroy();
-                        
-                        // Ordenar áreas de mayor a menor cumplimiento
-                        dataAreas.areas.sort((a, b) => b.cumplimiento - a.cumplimiento);
-                        
-                        const ctxAreas = document.getElementById('chart-areas').getContext('2d');
-                        chartAreas = new Chart(ctxAreas, {
-                            type: 'bar',
-                            data: {
-                                labels: dataAreas.areas.map(item => formatName(item.area)),
-                                datasets: [{
-                                    label: '% Cumplimiento',
-                                    data: dataAreas.areas.map(item => item.cumplimiento),
-                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                    borderWidth: 1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        max: 100,
-                                        ticks: {
-                                            callback: function(value) {
-                                                return value + '%';
-                                            }
+                    // Actualizar gráfico de áreas (REEMPLAZO DE PARETO)
+                    if (chartAreas) chartAreas.destroy();
+                    const ctxAreas = document.getElementById('chart-areas').getContext('2d');
+                    
+                    // Ordenar áreas de mayor a menor cumplimiento
+                    const areasSorted = [...data.areasData];
+                    areasSorted.sort((a, b) => b.porcCumple - a.porcCumple);
+                    
+                    chartAreas = new Chart(ctxAreas, {
+                        type: 'bar',
+                        data: {
+                            labels: areasSorted.map(item => formatName(item.area)),
+                            datasets: [{
+                                label: '% Cumplimiento',
+                                data: areasSorted.map(item => item.porcCumple),
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value + '%';
                                         }
                                     }
                                 }
                             }
-                        });
-                    }
+                        }
+                    });
                    
                 } else {
                     throw new Error(data.message || "Error al cargar datos");
@@ -2916,7 +2939,7 @@
             document.querySelectorAll('.reporte-item').forEach(item => {
                 item.classList.remove('active');
             });
-            document.querySelector(`.reporte-item[data-id="${reporteId}"]').classList.add('active');
+            document.querySelector(`.reporte-item[data-id="${reporteId}"]`).classList.add('active');
            
             document.getElementById('reporte-auditor').textContent = reporte.auditor;
             document.getElementById('reporte-unidad').textContent = reporte.unidad;
@@ -3390,6 +3413,7 @@
                     // Actualizar selects de áreas
                     llenarSelectAreas('filtro-area-reporte', allAreas);
                     llenarSelectAreas('area-exportar', allAreas);
+                    llenarSelectAreas('filtro-area', allAreas);
                 }
             } catch (error) {
                 console.error('Error cargando todas las áreas:', error);
