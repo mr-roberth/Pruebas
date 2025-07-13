@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <style>
-        /* Nuevo esquema de colores: negro, blanco y amarillo */
+        /* Esquema de colores: negro, blanco y amarillo */
         :root {
             --primary: #000000;          /* Negro */
             --primary-dark: #333333;     /* Negro oscuro */
@@ -71,6 +71,7 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 12px 20px;
+            flex-wrap: wrap;
         }
        
         .logo {
@@ -94,10 +95,18 @@
             -webkit-text-fill-color: transparent;
         }
        
+        nav {
+            flex: 1;
+            min-width: 0;
+            overflow-x: auto;
+            padding: 0 10px;
+        }
+       
         nav ul {
             display: flex;
             list-style: none;
             gap: 8px;
+            flex-wrap: nowrap;
         }
        
         nav a {
@@ -113,6 +122,7 @@
             font-weight: 500;
             position: relative;
             overflow: hidden;
+            white-space: nowrap;
         }
        
         nav a::before {
@@ -145,6 +155,8 @@
             align-items: center;
             gap: 12px;
             color: white;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
        
         .user-info span {
@@ -3454,6 +3466,7 @@
                     // Actualizar selects de áreas
                     llenarSelectAreas('filtro-area-reporte', allAreas);
                     llenarSelectAreas('area-exportar', allAreas);
+                    llenarSelectAreas('filtro-area', allAreas);
                 }
             } catch (error) {
                 console.error('Error cargando todas las áreas:', error);
