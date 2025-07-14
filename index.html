@@ -182,6 +182,16 @@
             background: rgba(255, 255, 255, 0.25);
             transform: translateY(-2px);
         }
+
+        /* Botón de menú móvil */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
        
         /* Formularios modernos */
         .form-section {
@@ -891,6 +901,11 @@
                 order: 3;
                 width: 100%;
                 margin-top: 15px;
+                display: none;
+            }
+
+            nav.active {
+                display: block;
             }
            
             nav ul {
@@ -908,6 +923,10 @@
            
             .form-section {
                 padding: 22px;
+            }
+
+            .menu-toggle {
+                display: block;
             }
         }
        
@@ -1144,11 +1163,14 @@
         <!-- Header -->
         <header>
             <div class="header-content">
+                <button class="menu-toggle" id="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <div class="logo">
                     <img src="logo2.png" alt="Logo Auditoría PPR" style="height: 40px;">
                     <h1>Auditoría PPR</h1>
                 </div>
-                <nav>
+                <nav id="nav-menu">
                     <ul>
                         <li><a href="#" class="nav-link" data-page="inicio"><i class="fas fa-home"></i> Inicio</a></li>
                         <li><a href="#" class="nav-link" data-page="auditoria"><i class="fas fa-file-alt"></i> Auditoría</a></li>
@@ -1788,42 +1810,38 @@
            
             // Botón para guardar progreso
             document.getElementById('guardar-progreso').addEventListener('click', guardarProgreso);
+
+            // Toggle menu móvil
+            document.getElementById('menu-toggle').addEventListener('click', function() {
+                const menu = document.getElementById('nav-menu');
+                menu.classList.toggle('active');
+                
+                // Cambiar icono según estado
+                const icon = this.querySelector('i');
+                if (menu.classList.contains('active')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                }
+            });
+            
+            // Cerrar menú al hacer clic en un enlace (para móviles)
+            document.querySelectorAll('#nav-menu .nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    const menu = document.getElementById('nav-menu');
+                    if (menu.classList.contains('active')) {
+                        menu.classList.remove('active');
+                        const icon = document.querySelector('.menu-toggle i');
+                        icon.classList.remove('fa-times');
+                        icon.classList.add('fa-bars');
+                    }
+                });
+            });
         });
        
-        // =============================================
-    // CÓDIGO PARA EL MENÚ MÓVIL - AGREGADO AQUÍ
-    // =============================================
-    // Toggle menu móvil
-    document.getElementById('menu-toggle').addEventListener('click', function() {
-        const menu = document.getElementById('nav-menu');
-        menu.classList.toggle('active');
-        
-        // Cambiar icono según estado
-        const icon = this.querySelector('i');
-        if (menu.classList.contains('active')) {
-            icon.classList.remove('fa-bars');
-            icon.classList.add('fa-times');
-        } else {
-            icon.classList.remove('fa-times');
-            icon.classList.add('fa-bars');
-        }
-    });
-    
-    // Cerrar menú al hacer clic en un enlace (para móviles)
-    document.querySelectorAll('#nav-menu .nav-link').forEach(link => {
-        link.addEventListener('click', function() {
-            const menu = document.getElementById('nav-menu');
-            if (menu.classList.contains('active')) {
-                menu.classList.remove('active');
-                const icon = document.querySelector('.menu-toggle i');
-                icon.classList.remove('fa-times');
-                icon.classList.add('fa-bars');
-            }
-        });
-    });
-});
-       
-        // Inicializar IndexedDB (versión corregida)
+        // Inicializar IndexedDB
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -1852,7 +1870,7 @@
             });
         }
        
-        // Guardar auditoría en IndexedDB (corregido)
+        // Guardar auditoría en IndexedDB
         async function saveAuditToLocalDB(auditData, status = "draft") {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readwrite");
@@ -1871,7 +1889,7 @@
             });
         }
        
-        // Obtener auditorías guardadas (corregido)
+        // Obtener auditorías guardadas
         async function getSavedAudits() {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readonly");
@@ -1884,7 +1902,7 @@
             });
         }
        
-        // Obtener auditorías pendientes (corregido)
+        // Obtener auditorías pendientes
         async function getPendingAudits() {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readonly");
@@ -1897,7 +1915,7 @@
             });
         }
        
-        // Eliminar auditoría guardada (corregido)
+        // Eliminar auditoría guardada
         async function deleteSavedAudit(auditId) {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readwrite");
@@ -1923,7 +1941,7 @@
             }
         }
        
-        // Sincronizar datos offline (versión corregida)
+        // Sincronizar datos offline
         async function syncOfflineData() {
             if (!navigator.onLine) {
                 alert("No hay conexión a internet. Conéctate para sincronizar.");
@@ -1985,10 +2003,6 @@
             }
         }
        
-        // ================================================
-        // FUNCIONES EXISTENTES CON CORRECCIONES
-        // ================================================
-       
         // Función para visualizar PDF
         function mostrarPDF(url) {
             const viewer = document.getElementById('pdf-viewer');
@@ -2013,7 +2027,7 @@
             }
         }
  
-        // Función para cargar dashboard con manejo de errores mejorado
+        // Función para cargar dashboard
         async function cargarDashboard() {
             const loader = document.getElementById('dashboard-loader');
             const content = document.getElementById('dashboard-content');
@@ -2156,7 +2170,7 @@
             }
         }
        
-        // Función para finalizar auditoría con soporte offline
+        // Función para finalizar auditoría
         async function finalizarAuditoria() {
             const btn = document.getElementById('finalizar-auditoria');
             btn.disabled = true;
@@ -2604,7 +2618,7 @@
             showPage('auditoria');
         }
        
-        // Generar preguntas de auditoría con soporte offline
+        // Generar preguntas de auditoría
         function generarPreguntas() {
             const container = document.getElementById('preguntas-container');
             container.innerHTML = '';
