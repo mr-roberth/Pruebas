@@ -599,7 +599,7 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000000" opacity="0.05"/><path d="M0 0 L100 100 M100 0 L0 100" stroke="%23000000" stroke-width="1" stroke-opacity="0.1"/></svg>');
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000000" opacity="0.05"/><path d="M0 0 L100 100 M100 0 L0 100" stroke="%23000000" stroke-width="1" stroke-opacity="0.1"/></svg>');
             background-size: 200px;
         }
        
@@ -920,10 +920,6 @@
             .login-card {
                 padding: 30px 20px;
             }
-           
-            .form-section {
-                padding: 22px;
-            }
 
             .menu-toggle {
                 display: block;
@@ -1092,6 +1088,48 @@
         #sync-container.syncing {
             background: rgba(255, 215, 0, 0.2);
         }
+
+        /* Nuevos estilos para agrupación por prerrequisito */
+        .categoria-card {
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+
+        .categoria-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+        }
+
+        .categoria-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        .btn-toggle {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .preguntas-categoria {
+            padding: 15px;
+            display: none;
+        }
+
+        .categoria-header.active + .preguntas-categoria {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -1178,7 +1216,6 @@
                         <li><a href="#" class="nav-link" data-page="reportes"><i class="fas fa-file-pdf"></i> Reportes</a></li>
                         <li><a href="#" class="nav-link" data-page="exportar"><i class="fas fa-file-export"></i> Exportar</a></li>
                         <li><a href="#" class="nav-link" data-page="cuenta"><i class="fas fa-user"></i> Cuenta</a></li>
-                        <!-- Nuevo enlace a Guardadas -->
                         <li><a href="#" class="nav-link" data-page="guardadas"><i class="fas fa-save"></i> Guardadas</a></li>
                     </ul>
                 </nav>
@@ -1376,7 +1413,6 @@
                             </div>
                         </div>
  
-                        <!-- Nuevo gráfico de barras para áreas -->
                         <div class="chart-container">
                             <h3 class="chart-title"><i class="fas fa-building"></i> Cumplimiento por Área</h3>
                             <div class="chart-wrapper">
@@ -1396,7 +1432,6 @@
                         <div class="filtros-reportes">
                             <h3><i class="fas fa-filter"></i> Filtros</h3>
                            
-                            <!-- Filtros de fecha mejorados -->
                             <div class="form-group">
                                 <label for="filtro-fecha-inicio-reporte">Fecha Inicio</label>
                                 <input type="date" id="filtro-fecha-inicio-reporte">
@@ -1411,7 +1446,6 @@
                                 <label for="filtro-area-reporte">Área Auditada</label>
                                 <select id="filtro-area-reporte">
                                     <option value="">Todas las áreas</option>
-                                    <!-- Áreas se cargarán dinámicamente -->
                                 </select>
                             </div>
                            
@@ -1419,7 +1453,6 @@
                                 <label for="filtro-auditor-reporte">Auditor</label>
                                 <select id="filtro-auditor-reporte">
                                     <option value="">Todos los auditores</option>
-                                    <!-- Auditores se cargarán dinámicamente -->
                                 </select>
                             </div>
                            
@@ -1490,7 +1523,6 @@
                                         </tr>
                                     </thead>
                                     <tbody id="reporte-detalle">
-                                        <!-- Detalle se generará con JavaScript -->
                                     </tbody>
                                 </table>
                             </div>
@@ -1500,7 +1532,6 @@
                             </div>
                         </div>
                        
-                        <!-- Visor de PDF mejorado -->
                         <div id="pdf-viewer-container">
                             <iframe id="pdf-viewer" src="" frameborder="0"></iframe>
                         </div>
@@ -1545,7 +1576,6 @@
                             <label for="area-exportar">Área</label>
                             <select id="area-exportar">
                                 <option value="">Todas las áreas</option>
-                                <!-- Áreas se cargarán dinámicamente -->
                             </select>
                         </div>
                     </div>
@@ -1558,7 +1588,7 @@
                 </div>
             </section>
            
-            <!-- Nueva Sección Cuenta -->
+            <!-- Sección Cuenta -->
             <section id="cuenta" class="page-section">
                 <div class="form-section">
                     <h2 class="form-title"><i class="fas fa-user-circle"></i> Gestión de Cuenta</h2>
@@ -1624,12 +1654,11 @@
                 </div>
             </section>
            
-            <!-- Nueva Sección: Auditorías Guardadas -->
+            <!-- Sección: Auditorías Guardadas -->
             <section id="guardadas" class="page-section">
                 <div class="form-section">
                     <h2 class="form-title"><i class="fas fa-save"></i> Auditorías Guardadas</h2>
                     <div id="auditorias-guardadas-container">
-                        <!-- Auditorías se cargarán aquí -->
                     </div>
                 </div>
             </section>
@@ -1713,11 +1742,9 @@
                     const page = this.getAttribute('data-page');
                     showPage(page);
                    
-                    // Actualizar navegación activa
                     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                    
-                    // Cargar datos del dashboard si es necesario
                     if (page === 'dashboard') {
                         cargarDashboard();
                     } else if (page === 'reportes') {
@@ -1734,31 +1761,19 @@
                 });
             });
            
-            // Event listener para iniciar auditoría
             document.getElementById('iniciar-auditoria').addEventListener('click', iniciarAuditoria);
-           
-            // Event listener para finalizar auditoría
             document.getElementById('finalizar-auditoria').addEventListener('click', finalizarAuditoria);
-           
-            // Event listener para login
             document.getElementById('btn-login').addEventListener('click', login);
-           
-            // Event listener para registro
             document.getElementById('btn-register').addEventListener('click', register);
-           
-            // Event listener para logout
             document.getElementById('btn-logout').addEventListener('click', logout);
            
-            // Event listener para tabs de login/registro
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
                    
-                    // Actualizar tabs
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                    
-                    // Mostrar el formulario correspondiente
                     if (tabId === 'login') {
                         document.getElementById('login-form').style.display = 'block';
                         document.getElementById('register-form').style.display = 'none';
@@ -1769,54 +1784,35 @@
                 });
             });
            
-            // Event listener para filtros de reportes
             document.getElementById('aplicar-filtros-reportes').addEventListener('click', cargarReportes);
-           
-            // Event listener para exportar datos
             document.getElementById('btn-exportar').addEventListener('click', exportarDatos);
-           
-            // Event listener para ver PDF
             document.getElementById('ver-pdf').addEventListener('click', function() {
                 const pdfUrl = document.getElementById('reporte-pdf-url').value;
                 mostrarPDF(pdfUrl);
             });
            
-            // Event listener para generar PDF
             document.getElementById('generar-pdf').addEventListener('click', generarPDF);
-           
-            // Event listener para filtros dashboard
             document.getElementById('aplicar-filtros').addEventListener('click', cargarDashboard);
-           
-            // Event listener para cambio de unidad (carga áreas)
             document.getElementById('unidad-negocio').addEventListener('change', cargarAreasPorUnidad);
             document.getElementById('filtro-unidad').addEventListener('change', function() {
                 cargarAreasPorUnidadDashboard(this.value);
             });
            
-            // Inicializar gráficos vacíos
             inicializarGraficos();
-           
-            // Cargar todas las áreas al iniciar
             cargarTodasLasAreas();
             cargarAuditores();
            
-            // Inicializar estado de conexión
             updateConnectionStatus();
             window.addEventListener('online', updateConnectionStatus);
             window.addEventListener('offline', updateConnectionStatus);
            
-            // Botón de sincronización manual
             document.getElementById('btn-sync').addEventListener('click', syncOfflineData);
-           
-            // Botón para guardar progreso
             document.getElementById('guardar-progreso').addEventListener('click', guardarProgreso);
 
-            // Toggle menu móvil
             document.getElementById('menu-toggle').addEventListener('click', function() {
                 const menu = document.getElementById('nav-menu');
                 menu.classList.toggle('active');
                 
-                // Cambiar icono según estado
                 const icon = this.querySelector('i');
                 if (menu.classList.contains('active')) {
                     icon.classList.remove('fa-bars');
@@ -1827,7 +1823,6 @@
                 }
             });
             
-            // Cerrar menú al hacer clic en un enlace (para móviles)
             document.querySelectorAll('#nav-menu .nav-link').forEach(link => {
                 link.addEventListener('click', function() {
                     const menu = document.getElementById('nav-menu');
@@ -1849,7 +1844,6 @@
                 request.onupgradeneeded = (event) => {
                     db = event.target.result;
                    
-                    // Crear almacén para auditorías
                     if (!db.objectStoreNames.contains(STORE_AUDITS)) {
                         const auditsStore = db.createObjectStore(STORE_AUDITS, {
                             keyPath: "id",
@@ -1949,19 +1943,16 @@
             }
            
             try {
-                // Mostrar estado de sincronización
                 const syncButton = document.getElementById('btn-sync');
                 const originalText = syncButton.innerHTML;
                 syncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando...';
                 syncButton.disabled = true;
                 document.getElementById('sync-container').classList.add('syncing');
                 
-                // 1. Sincronizar auditorías pendientes
                 const pendingAudits = await getPendingAudits();
                
                 for (const audit of pendingAudits) {
                     try {
-                        // Enviar auditoría al servidor
                         const response = await fetch(SCRIPT_URL, {
                             method: 'POST',
                             body: JSON.stringify({
@@ -1981,7 +1972,6 @@
                         const data = await response.json();
                        
                         if (data.status === "success") {
-                            // Eliminar de la base de datos local
                             await deleteSavedAudit(audit.id);
                         }
                     } catch (error) {
@@ -2072,7 +2062,6 @@
                     ];
                     chartDistribucion.update();
                    
-                    // Actualizar gráfico de preguntas
                     if (chartPreguntas) chartPreguntas.destroy();
                     const ctxPreguntas = document.getElementById('chart-preguntas').getContext('2d');
                     chartPreguntas = new Chart(ctxPreguntas, {
@@ -2113,12 +2102,10 @@
                         }
                     });
                    
-                    // Nuevo gráfico de barras por área
                     if (chartAreas) chartAreas.destroy();
                     if (data.areasData && data.areasData.labels.length > 0) {
                         const ctxAreas = document.getElementById('chart-areas').getContext('2d');
                         
-                        // Ordenar de mayor a menor cumplimiento
                         const combined = data.areasData.labels.map((label, i) => ({
                             label,
                             value: data.areasData.values[i]
@@ -2191,36 +2178,21 @@
                     }
                 }
                
-                // CÁLCULO CORREGIDO DE PORCENTAJES
+                // CÁLCULO CORREGIDO: Excluir "No aplica" del total
                 const totalPreguntas = preguntasPorArea.length;
+                const noAplica = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
+                const totalAplican = totalPreguntas - noAplica;
+
                 const cumple = Object.values(respuestas).filter(r => r.estado === 'cumple').length;
                 const parcial = Object.values(respuestas).filter(r => r.estado === 'parcial').length;
                 const noCumple = Object.values(respuestas).filter(r => r.estado === 'no_cumple').length;
-                const noAplica = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
                
-                let porcCumple = Math.round((cumple / totalPreguntas) * 100);
-                let porcParcial = Math.round((parcial / totalPreguntas) * 100);
-                let porcNoCumple = Math.round((noCumple / totalPreguntas) * 100);
+                // Calcular porcentajes solo sobre preguntas que aplican
+                let porcCumple = totalAplican > 0 ? Math.round((cumple / totalAplican) * 100) : 0;
+                let porcParcial = totalAplican > 0 ? Math.round((parcial / totalAplican) * 100) : 0;
+                let porcNoCumple = totalAplican > 0 ? Math.round((noCumple / totalAplican) * 100) : 0;
                 let porcNoAplica = Math.round((noAplica / totalPreguntas) * 100);
-               
-                // Ajustar redondeo para que sume 100%
-                const total = porcCumple + porcParcial + porcNoCumple + porcNoAplica;
-                const diff = 100 - total;
-               
-                if (diff !== 0) {
-                    // Ajustar el porcentaje más grande
-                    const maxValue = Math.max(porcCumple, porcParcial, porcNoCumple, porcNoAplica);
-                    if (porcCumple === maxValue) {
-                        porcCumple += diff;
-                    } else if (porcParcial === maxValue) {
-                        porcParcial += diff;
-                    } else if (porcNoCumple === maxValue) {
-                        porcNoCumple += diff;
-                    } else {
-                        porcNoAplica += diff;
-                    }
-                }
- 
+
                 // Determinar resultado general
                 let resultado = "Cumplimiento Total";
                 let color = "var(--success)";
@@ -2230,7 +2202,7 @@
                     color = "var(--warning)";
                 }
                
-                if (noCumple > totalPreguntas * 0.1) {
+                if (noCumple > totalAplican * 0.1) {
                     resultado = "No Cumple";
                     color = "var(--danger)";
                 }
@@ -2256,9 +2228,7 @@
                     });
                 });
                
-                // Verificar conexión para envío
                 if (!navigator.onLine) {
-                    // Guardar en base de datos local como "pending"
                     await saveAuditToLocalDB({
                         auditorData: auditorData,
                         respuestas: respuestas,
@@ -2376,7 +2346,6 @@
                     container.appendChild(auditElement);
                 });
                
-                // Event listeners para los botones
                 document.querySelectorAll('.continuar-auditoria').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const auditId = this.getAttribute('data-id');
@@ -2408,21 +2377,17 @@
                     const audit = event.target.result;
                     if (!audit) throw new Error("Auditoría no encontrada");
                    
-                    // Cargar datos en las variables globales
                     auditorData = audit.auditorData;
                     respuestas = audit.respuestas;
                     preguntasPorArea = audit.preguntasPorArea;
                    
-                    // Actualizar UI
                     document.getElementById('current-auditor').textContent = auditorData.nombre;
                     document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
                     document.getElementById('current-area').textContent = formatName(auditorData.area);
                     document.getElementById('current-date').textContent = auditorData.fecha;
                    
-                    // Generar preguntas con respuestas cargadas
                     generarPreguntas();
                    
-                    // Mostrar sección de auditoría
                     showPage('auditoria');
                 };
                
@@ -2565,7 +2530,6 @@
             }
            
             try {
-                // Verificar caché primero
                 const cacheKey = `preguntas-${area}`;
                 const cachedPreguntas = localStorage.getItem(cacheKey);
                
@@ -2594,6 +2558,8 @@
                 return;
             }
            
+            // Inicializar respuestas como objeto vacío
+            respuestas = {};
             auditorData = {
                 nombre: nombre,
                 unidad: unidad,
@@ -2618,159 +2584,184 @@
             showPage('auditoria');
         }
        
-        // Generar preguntas de auditoría
+        // Generar preguntas de auditoría (con agrupación por prerrequisito)
         function generarPreguntas() {
             const container = document.getElementById('preguntas-container');
             container.innerHTML = '';
-           
-            preguntasPorArea.forEach((pregunta, index) => {
-                const preguntaElement = document.createElement('div');
-                preguntaElement.className = 'pregunta-card';
-                preguntaElement.innerHTML = `
-                    <div class="pregunta-header">
-                        <div class="pregunta-text">${pregunta.id}. ${pregunta.texto}</div>
-                        <div class="categoria-pregunta">${pregunta.categoria}</div>
-                    </div>
-                    <div class="opciones">
-                        <div class="opcion" data-value="cumple" data-pregunta="${pregunta.id}">
-                            <input type="radio" name="pregunta-${pregunta.id}" value="cumple" id="p${pregunta.id}-cumple">
-                            <label for="p${pregunta.id}-cumple">Cumple</label>
-                        </div>
-                        <div class="opcion" data-value="parcial" data-pregunta="${pregunta.id}">
-                            <input type="radio" name="pregunta-${pregunta.id}" value="parcial" id="p${pregunta.id}-parcial">
-                            <label for="p${pregunta.id}-parcial">Cumple Parcial</label>
-                        </div>
-                        <div class="opcion" data-value="no_cumple" data-pregunta="${pregunta.id}">
-                            <input type="radio" name="pregunta-${pregunta.id}" value="no_cumple" id="p${pregunta.id}-no_cumple">
-                            <label for="p${pregunta.id}-no_cumple">No Cumple</label>
-                        </div>
-                        <div class="opcion" data-value="no_aplica" data-pregunta="${pregunta.id}">
-                            <input type="radio" name="pregunta-${pregunta.id}" value="no_aplica" id="p${pregunta.id}-no_aplica">
-                            <label for="p${pregunta.id}-no_aplica">No Aplica</label>
-                        </div>
-                    </div>
-                    <div class="evidencia-section" id="evidencia-${pregunta.id}">
-                        <p><strong>Evidencia fotográfica requerida:</strong></p>
-                        <div class="camera-preview" id="camera-preview-${pregunta.id}">
-                            <i class="fas fa-camera"></i>
-                            <span>Haz clic para tomar foto</span>
-                        </div>
-                        <input type="file" accept="image/*" capture="environment" style="display: none;" id="camera-input-${pregunta.id}">
-                    </div>
-                    <div class="observaciones-section">
-                        <label for="observaciones-${pregunta.id}">Observaciones:</label>
-                        <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa observaciones relevantes"></textarea>
-                    </div>
-                `;
-                container.appendChild(preguntaElement);
-               
-                const opciones = preguntaElement.querySelectorAll('.opcion');
-                opciones.forEach(opcion => {
-                    opcion.addEventListener('click', function() {
-                        const value = this.getAttribute('data-value');
-                        const preguntaId = this.getAttribute('data-pregunta');
-                       
-                        if (!respuestas[preguntaId]) respuestas[preguntaId] = {};
-                        respuestas[preguntaId].estado = value;
-                       
-                        const evidenciaSection = document.getElementById(`evidencia-${preguntaId}`);
-                        if (value === 'parcial' || value === 'no_cumple') {
-                            evidenciaSection.style.display = 'block';
-                        } else {
-                            evidenciaSection.style.display = 'none';
-                        }
-                       
-                        opciones.forEach(o => o.classList.remove('selected'));
-                        this.classList.add('selected');
-                    });
-                });
-               
-                const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
-                const cameraInput = document.getElementById(`camera-input-${pregunta.id}`);
-               
-                cameraPreview.addEventListener('click', function() {
-                    cameraInput.click();
-                });
-               
-                // Capturamos el id de la pregunta en una variable local
-                const currentPreguntaId = pregunta.id;
-               
-                cameraInput.addEventListener('change', async function(e) {
-                    if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        const reader = new FileReader();
-                       
-                        reader.onload = async function(event) {
-                            // Comprimir imagen antes de subir
-                            const compressedImg = await compressImage(file);
-                           
-                            cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
-                           
-                            // Verificar conexión para subir
-                            if (!navigator.onLine) {
-                                // Guardar evidencia localmente
-                                respuestas[currentPreguntaId].evidenciaUrl = compressedImg;
-                                alert('Evidencia guardada localmente. Se subirá con conexión.');
-                                return;
-                            }
-                           
-                            try {
-                                const response = await fetch(SCRIPT_URL, {
-                                    method: 'POST',
-                                    body: JSON.stringify({
-                                        action: "uploadImage",
-                                        image: compressedImg.split(',')[1] // Solo la parte base64
-                                    })
-                                });
-                               
-                                const data = await response.json();
-                               
-                                if (data.status === "success") {
-                                    if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
-                                    respuestas[currentPreguntaId].evidenciaUrl = data.url;
-                                } else {
-                                    throw new Error(data.message || "Error al subir imagen");
-                                }
-                            } catch (error) {
-                                alert('Error al subir evidencia: ' + error.message);
-                                cameraPreview.innerHTML = `
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <span>Error: ${error.message}</span>
-                                `;
-                            }
-                        };
-                       
-                        reader.readAsDataURL(file);
-                    }
-                });
-               
-                document.getElementById(`observaciones-${pregunta.id}`).addEventListener('input', function(e) {
-                    if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
-                    respuestas[pregunta.id].observaciones = e.target.value;
-                });
-               
-                // Cargar respuesta guardada si existe
-                if (respuestas[pregunta.id]) {
-                    const respuesta = respuestas[pregunta.id];
-                   
-                    // Seleccionar opción
-                    if (respuesta.estado) {
-                        const opcion = preguntaElement.querySelector(`.opcion[data-value="${respuesta.estado}"]`);
-                        if (opcion) {
-                            opcion.click();
-                           
-                            // Cargar evidencia si existe
-                            if (respuesta.evidenciaUrl) {
-                                cameraPreview.innerHTML = `<img src="${respuesta.evidenciaUrl}" alt="Evidencia fotográfica">`;
-                            }
-                        }
-                    }
-                   
-                    // Cargar observaciones
-                    if (respuesta.observaciones) {
-                        document.getElementById(`observaciones-${pregunta.id}`).value = respuesta.observaciones;
-                    }
+
+            // Agrupar preguntas por categoría
+            const preguntasPorCategoria = {};
+            preguntasPorArea.forEach(pregunta => {
+                if (!preguntasPorCategoria[pregunta.categoria]) {
+                    preguntasPorCategoria[pregunta.categoria] = [];
                 }
+                preguntasPorCategoria[pregunta.categoria].push(pregunta);
+            });
+
+            // Para cada categoría
+            Object.keys(preguntasPorCategoria).forEach(categoria => {
+                const categoriaElement = document.createElement('div');
+                categoriaElement.className = 'categoria-card';
+                categoriaElement.innerHTML = `
+                    <div class="categoria-header">
+                        <h3>${categoria}</h3>
+                        <button class="btn-toggle"><i class="fas fa-chevron-down"></i></button>
+                    </div>
+                    <div class="preguntas-categoria" style="display: none;"></div>
+                `;
+                container.appendChild(categoriaElement);
+
+                const preguntasContainer = categoriaElement.querySelector('.preguntas-categoria');
+                const toggleBtn = categoriaElement.querySelector('.btn-toggle');
+
+                toggleBtn.addEventListener('click', function() {
+                    const isOpen = preguntasContainer.style.display === 'block';
+                    preguntasContainer.style.display = isOpen ? 'none' : 'block';
+                    this.querySelector('i').className = isOpen ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+                });
+
+                // Generar preguntas para esta categoría
+                preguntasPorCategoria[categoria].forEach((pregunta) => {
+                    const preguntaElement = document.createElement('div');
+                    preguntaElement.className = 'pregunta-card';
+                    preguntaElement.innerHTML = `
+                        <div class="pregunta-header">
+                            <div class="pregunta-text">${pregunta.id}. ${pregunta.texto}</div>
+                        </div>
+                        <div class="opciones">
+                            <div class="opcion" data-value="cumple" data-pregunta="${pregunta.id}">
+                                <input type="radio" name="pregunta-${pregunta.id}" value="cumple" id="p${pregunta.id}-cumple">
+                                <label for="p${pregunta.id}-cumple">Cumple</label>
+                            </div>
+                            <div class="opcion" data-value="parcial" data-pregunta="${pregunta.id}">
+                                <input type="radio" name="pregunta-${pregunta.id}" value="parcial" id="p${pregunta.id}-parcial">
+                                <label for="p${pregunta.id}-parcial">Cumple Parcial</label>
+                            </div>
+                            <div class="opcion" data-value="no_cumple" data-pregunta="${pregunta.id}">
+                                <input type="radio" name="pregunta-${pregunta.id}" value="no_cumple" id="p${pregunta.id}-no_cumple">
+                                <label for="p${pregunta.id}-no_cumple">No Cumple</label>
+                            </div>
+                            <div class="opcion" data-value="no_aplica" data-pregunta="${pregunta.id}">
+                                <input type="radio" name="pregunta-${pregunta.id}" value="no_aplica" id="p${pregunta.id}-no_aplica">
+                                <label for="p${pregunta.id}-no_aplica">No Aplica</label>
+                            </div>
+                        </div>
+                        <div class="evidencia-section" id="evidencia-${pregunta.id}">
+                            <p><strong>Evidencia fotográfica requerida:</strong></p>
+                            <div class="camera-preview" id="camera-preview-${pregunta.id}">
+                                <i class="fas fa-camera"></i>
+                                <span>Haz clic para tomar foto</span>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" style="display: none;" id="camera-input-${pregunta.id}">
+                        </div>
+                        <div class="observaciones-section">
+                            <label for="observaciones-${pregunta.id}">Observaciones:</label>
+                            <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa observaciones relevantes"></textarea>
+                        </div>
+                    `;
+                    preguntasContainer.appendChild(preguntaElement);
+                    
+                    const opciones = preguntaElement.querySelectorAll('.opcion');
+                    opciones.forEach(opcion => {
+                        opcion.addEventListener('click', function() {
+                            const value = this.getAttribute('data-value');
+                            const preguntaId = this.getAttribute('data-pregunta');
+                           
+                            if (!respuestas[preguntaId]) respuestas[preguntaId] = {};
+                            respuestas[preguntaId].estado = value;
+                           
+                            const evidenciaSection = document.getElementById(`evidencia-${preguntaId}`);
+                            if (value === 'parcial' || value === 'no_cumple') {
+                                evidenciaSection.style.display = 'block';
+                            } else {
+                                evidenciaSection.style.display = 'none';
+                            }
+                           
+                            opciones.forEach(o => o.classList.remove('selected'));
+                            this.classList.add('selected');
+                        });
+                    });
+                   
+                    const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
+                    const cameraInput = document.getElementById(`camera-input-${pregunta.id}`);
+                   
+                    cameraPreview.addEventListener('click', function() {
+                        cameraInput.click();
+                    });
+                   
+                    const currentPreguntaId = pregunta.id;
+                   
+                    cameraInput.addEventListener('change', async function(e) {
+                        if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            const reader = new FileReader();
+                           
+                            reader.onload = async function(event) {
+                                const compressedImg = await compressImage(file);
+                               
+                                cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
+                               
+                                if (!navigator.onLine) {
+                                    respuestas[currentPreguntaId].evidenciaUrl = compressedImg;
+                                    alert('Evidencia guardada localmente. Se subirá con conexión.');
+                                    return;
+                                }
+                               
+                                try {
+                                    const response = await fetch(SCRIPT_URL, {
+                                        method: 'POST',
+                                        body: JSON.stringify({
+                                            action: "uploadImage",
+                                            image: compressedImg.split(',')[1]
+                                        })
+                                    });
+                                   
+                                    const data = await response.json();
+                                   
+                                    if (data.status === "success") {
+                                        if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
+                                        respuestas[currentPreguntaId].evidenciaUrl = data.url;
+                                    } else {
+                                        throw new Error(data.message || "Error al subir imagen");
+                                    }
+                                } catch (error) {
+                                    alert('Error al subir evidencia: ' + error.message);
+                                    cameraPreview.innerHTML = `
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>Error: ${error.message}</span>
+                                    `;
+                                }
+                            };
+                           
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                   
+                    document.getElementById(`observaciones-${pregunta.id}`).addEventListener('input', function(e) {
+                        if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
+                        respuestas[pregunta.id].observaciones = e.target.value;
+                    });
+                   
+                    // Cargar respuesta guardada si existe
+                    if (respuestas[pregunta.id]) {
+                        const respuesta = respuestas[pregunta.id];
+                       
+                        if (respuesta.estado) {
+                            const opcion = preguntaElement.querySelector(`.opcion[data-value="${respuesta.estado}"]`);
+                            if (opcion) {
+                                opcion.click();
+                               
+                                if (respuesta.evidenciaUrl) {
+                                    cameraPreview.innerHTML = `<img src="${respuesta.evidenciaUrl}" alt="Evidencia fotográfica">`;
+                                }
+                            }
+                        }
+                       
+                        if (respuesta.observaciones) {
+                            document.getElementById(`observaciones-${pregunta.id}`).value = respuesta.observaciones;
+                        }
+                    }
+                });
             });
         }
        
@@ -2785,7 +2776,6 @@
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
                        
-                        // Redimensionar si es muy grande
                         const MAX_WIDTH = 1024;
                         const MAX_HEIGHT = 1024;
                         let width = img.width;
@@ -2929,7 +2919,6 @@
                 }
             });
            
-            // Gráfico de áreas vacío
             chartAreas = new Chart(ctxAreas, {
                 type: 'bar',
                 data: {
@@ -3209,10 +3198,8 @@
                 const data = await response.json();
                
                 if (data.status === "success") {
-                    // Actualizar currentUser con los datos del perfil
                     currentUser = { ...currentUser, ...data.user };
                    
-                    // Actualizar UI
                     document.getElementById('profile-name').textContent = data.user.name;
                     document.getElementById('profile-email').textContent = data.user.email;
                     document.getElementById('edit-name').value = data.user.name;
@@ -3256,7 +3243,6 @@
             try {
                 let fotoUrl = currentUser.fotoPerfil;
                
-                // Subir nueva foto si existe
                 if (file) {
                     const compressedImg = await compressImage(file);
                    
@@ -3265,7 +3251,7 @@
                             method: 'POST',
                             body: JSON.stringify({
                                 action: "uploadImage",
-                                image: compressedImg.split(',')[1] // Solo la parte base64
+                                image: compressedImg.split(',')[1]
                             })
                         });
                        
@@ -3284,7 +3270,6 @@
                     }
                 }
                
-                // Guardar perfil
                 try {
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
@@ -3305,7 +3290,6 @@
                         currentUser.unidad = unidad;
                         currentUser.fotoPerfil = fotoUrl;
                        
-                        // Actualizar fotos inmediatamente
                         document.getElementById('profile-picture').src = fotoUrl;
                         document.getElementById('user-photo').src = fotoUrl;
                        
@@ -3403,7 +3387,6 @@
             }
            
             try {
-                // Verificar caché
                 if (areasCache[unidad]) {
                     renderAreasSelect(areaSelect, areasCache[unidad]);
                     return;
@@ -3437,7 +3420,6 @@
             areaSelect.innerHTML = '<option value="">Cargando áreas...</option>';
            
             try {
-                // Si no se selecciona unidad (Todas las unidades), cargar todas las áreas
                 if (!unidad) {
                     areaSelect.innerHTML = '<option value="">Todas las áreas</option>';
                     if (allAreas && allAreas.length > 0) {
@@ -3451,7 +3433,6 @@
                     return;
                 }
                
-                // Verificar caché
                 if (areasCache[unidad]) {
                     areaSelect.innerHTML = '<option value="">Todas las áreas</option>';
                     areasCache[unidad].forEach(area => {
@@ -3506,7 +3487,6 @@
                 if (data.status === "success") {
                     allAreas = data.areas;
                    
-                    // Actualizar selects de áreas
                     llenarSelectAreas('filtro-area-reporte', allAreas);
                     llenarSelectAreas('area-exportar', allAreas);
                     llenarSelectAreas('filtro-area', allAreas);
