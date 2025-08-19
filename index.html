@@ -599,7 +599,7 @@
             align-items: center;
             min-height: 100vh;
             padding: 20px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000000" opacity="0.05"/><path d="M0 0 L100 100 M100 0 L0 100" stroke="%23000000" stroke-width="1" stroke-opacity="0.1"/></svg>');
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23000000" opacity="0.05"/><path d="M0 0 L100 100 M100 0 L0 100" stroke="%23000000" stroke-width="1" stroke-opacity="0.1"/></svg>');
             background-size: 200px;
         }
        
@@ -621,12 +621,15 @@
             left: 0;
             width: 100%;
             height: 8px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            background: linear-gradient(90deg, var(--primary), var(--secondary);
         }
        
         .login-logo {
             text-align: center;
             margin-bottom: 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
        
         .login-logo img {
@@ -920,6 +923,10 @@
             .login-card {
                 padding: 30px 20px;
             }
+           
+            .form-section {
+                padding: 22px;
+            }
 
             .menu-toggle {
                 display: block;
@@ -939,7 +946,7 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            background: linear-gradient(90deg, var(--primary), var(--secondary);
             border-radius: 3px;
             transform: scaleX(0);
             transform-origin: right;
@@ -1089,46 +1096,86 @@
             background: rgba(255, 215, 0, 0.2);
         }
 
-        /* Nuevos estilos para agrupación por prerrequisito */
-        .categoria-card {
-            background: #fff;
-            border-radius: 12px;
+        /* Estilos para acordeones de categorías */
+        .acordeon-categoria {
             margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             overflow: hidden;
         }
 
-        .categoria-header {
+        .acordeon-titulo {
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            padding: 16px 20px;
+            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-            cursor: pointer;
+            transition: var(--transition);
         }
 
-        .categoria-header h3 {
+        .acordeon-titulo:hover {
+            background: linear-gradient(to right, #e9ecef, #dee2e6);
+        }
+
+        .acordeon-titulo h3 {
             margin: 0;
-            font-size: 1.2rem;
-            color: #333;
+            font-size: 1.1rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .btn-toggle {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: #666;
+        .acordeon-titulo i {
+            transition: var(--transition);
         }
 
-        .preguntas-categoria {
-            padding: 15px;
-            display: none;
+        .acordeon-titulo.activo i {
+            transform: rotate(180deg);
         }
 
-        .categoria-header.active + .preguntas-categoria {
-            display: block;
+        .acordeon-contenido {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .acordeon-contenido.abierto {
+            max-height: 5000px;
+        }
+
+        .contador-preguntas {
+            background: var(--secondary);
+            color: var(--primary);
+            border-radius: 12px;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .auto-save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .auto-save-indicator.mostrar {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -1138,7 +1185,7 @@
         <div class="login-container">
             <div class="login-card">
                 <div class="login-logo">
-                    <img src="logo.png" alt="Logo Auditoría PPR">
+                    <img src="logo.png" alt="Logo Auditoría PPR" onerror="this.style.display='none'; document.querySelector('.login-logo h1').style.marginTop='20px'">
                     <h1>Auditoría PPR</h1>
                 </div>
                
@@ -1205,7 +1252,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <div class="logo">
-                    <img src="logo2.png" alt="Logo Auditoría PPR" style="height: 40px;">
+                    <img src="logo2.png" alt="Logo Auditoría PPR" style="height: 40px;" onerror="this.style.display='none'">
                     <h1>Auditoría PPR</h1>
                 </div>
                 <nav id="nav-menu">
@@ -1216,6 +1263,7 @@
                         <li><a href="#" class="nav-link" data-page="reportes"><i class="fas fa-file-pdf"></i> Reportes</a></li>
                         <li><a href="#" class="nav-link" data-page="exportar"><i class="fas fa-file-export"></i> Exportar</a></li>
                         <li><a href="#" class="nav-link" data-page="cuenta"><i class="fas fa-user"></i> Cuenta</a></li>
+                        <!-- Nuevo enlace a Guardadas -->
                         <li><a href="#" class="nav-link" data-page="guardadas"><i class="fas fa-save"></i> Guardadas</a></li>
                     </ul>
                 </nav>
@@ -1413,6 +1461,7 @@
                             </div>
                         </div>
  
+                        <!-- Nuevo gráfico de barras para áreas -->
                         <div class="chart-container">
                             <h3 class="chart-title"><i class="fas fa-building"></i> Cumplimiento por Área</h3>
                             <div class="chart-wrapper">
@@ -1432,6 +1481,7 @@
                         <div class="filtros-reportes">
                             <h3><i class="fas fa-filter"></i> Filtros</h3>
                            
+                            <!-- Filtros de fecha mejorados -->
                             <div class="form-group">
                                 <label for="filtro-fecha-inicio-reporte">Fecha Inicio</label>
                                 <input type="date" id="filtro-fecha-inicio-reporte">
@@ -1446,6 +1496,7 @@
                                 <label for="filtro-area-reporte">Área Auditada</label>
                                 <select id="filtro-area-reporte">
                                     <option value="">Todas las áreas</option>
+                                    <!-- Áreas se cargarán dinámicamente -->
                                 </select>
                             </div>
                            
@@ -1453,6 +1504,7 @@
                                 <label for="filtro-auditor-reporte">Auditor</label>
                                 <select id="filtro-auditor-reporte">
                                     <option value="">Todos los auditores</option>
+                                    <!-- Auditores se cargarán dinámicamente -->
                                 </select>
                             </div>
                            
@@ -1523,6 +1575,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="reporte-detalle">
+                                        <!-- Detalle se generará con JavaScript -->
                                     </tbody>
                                 </table>
                             </div>
@@ -1532,6 +1585,7 @@
                             </div>
                         </div>
                        
+                        <!-- Visor de PDF mejorado -->
                         <div id="pdf-viewer-container">
                             <iframe id="pdf-viewer" src="" frameborder="0"></iframe>
                         </div>
@@ -1576,6 +1630,7 @@
                             <label for="area-exportar">Área</label>
                             <select id="area-exportar">
                                 <option value="">Todas las áreas</option>
+                                <!-- Áreas se cargarán dinámicamente -->
                             </select>
                         </div>
                     </div>
@@ -1588,7 +1643,7 @@
                 </div>
             </section>
            
-            <!-- Sección Cuenta -->
+            <!-- Nueva Sección Cuenta -->
             <section id="cuenta" class="page-section">
                 <div class="form-section">
                     <h2 class="form-title"><i class="fas fa-user-circle"></i> Gestión de Cuenta</h2>
@@ -1654,11 +1709,12 @@
                 </div>
             </section>
            
-            <!-- Sección: Auditorías Guardadas -->
+            <!-- Nueva Sección: Auditorías Guardadas -->
             <section id="guardadas" class="page-section">
                 <div class="form-section">
                     <h2 class="form-title"><i class="fas fa-save"></i> Auditorías Guardadas</h2>
                     <div id="auditorias-guardadas-container">
+                        <!-- Auditorías se cargarán aquí -->
                     </div>
                 </div>
             </section>
@@ -1700,6 +1756,12 @@
             </div>
         </footer>
     </div>
+
+    <!-- Indicador de guardado automático -->
+    <div class="auto-save-indicator" id="auto-save-indicator">
+        <i class="fas fa-check-circle"></i>
+        <span>Progreso guardado</span>
+    </div>
    
     <script>
         // URL de tu Google Apps Script
@@ -1715,12 +1777,15 @@
         let areasCache = {};
         let allAreas = [];
         let auditores = [];
+        let currentAuditId = null;
+        let autoSaveTimeout = null;
        
         // Base de datos local (IndexedDB)
         let db;
         const DB_NAME = "AuditoriaPPRDB";
-        const DB_VERSION = 1;
+        const DB_VERSION = 2;
         const STORE_AUDITS = "auditorias";
+        const STORE_SESSION = "session";
        
         // Inicialización
         document.addEventListener('DOMContentLoaded', async function() {
@@ -1734,6 +1799,9 @@
            
             // Inicializar base de datos local
             await initDB();
+            
+            // Restaurar sesión si existe
+            await restoreSession();
            
             // Event listeners para navegación
             document.querySelectorAll('.nav-link').forEach(link => {
@@ -1742,9 +1810,11 @@
                     const page = this.getAttribute('data-page');
                     showPage(page);
                    
+                    // Actualizar navegación activa
                     document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                    
+                    // Cargar datos del dashboard si es necesario
                     if (page === 'dashboard') {
                         cargarDashboard();
                     } else if (page === 'reportes') {
@@ -1761,19 +1831,31 @@
                 });
             });
            
+            // Event listener para iniciar auditoría
             document.getElementById('iniciar-auditoria').addEventListener('click', iniciarAuditoria);
+           
+            // Event listener para finalizar auditoría
             document.getElementById('finalizar-auditoria').addEventListener('click', finalizarAuditoria);
+           
+            // Event listener para login
             document.getElementById('btn-login').addEventListener('click', login);
+           
+            // Event listener para registro
             document.getElementById('btn-register').addEventListener('click', register);
+           
+            // Event listener para logout
             document.getElementById('btn-logout').addEventListener('click', logout);
            
+            // Event listener para tabs de login/registro
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.addEventListener('click', function() {
                     const tabId = this.getAttribute('data-tab');
                    
+                    // Actualizar tabs
                     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                    
+                    // Mostrar el formulario correspondiente
                     if (tabId === 'login') {
                         document.getElementById('login-form').style.display = 'block';
                         document.getElementById('register-form').style.display = 'none';
@@ -1784,35 +1866,54 @@
                 });
             });
            
+            // Event listener para filtros de reportes
             document.getElementById('aplicar-filtros-reportes').addEventListener('click', cargarReportes);
+           
+            // Event listener para exportar datos
             document.getElementById('btn-exportar').addEventListener('click', exportarDatos);
+           
+            // Event listener para ver PDF
             document.getElementById('ver-pdf').addEventListener('click', function() {
                 const pdfUrl = document.getElementById('reporte-pdf-url').value;
                 mostrarPDF(pdfUrl);
             });
            
+            // Event listener para generar PDF
             document.getElementById('generar-pdf').addEventListener('click', generarPDF);
+           
+            // Event listener para filtros dashboard
             document.getElementById('aplicar-filtros').addEventListener('click', cargarDashboard);
+           
+            // Event listener para cambio de unidad (carga áreas)
             document.getElementById('unidad-negocio').addEventListener('change', cargarAreasPorUnidad);
             document.getElementById('filtro-unidad').addEventListener('change', function() {
                 cargarAreasPorUnidadDashboard(this.value);
             });
            
+            // Inicializar gráficos vacíos
             inicializarGraficos();
+           
+            // Cargar todas las áreas al iniciar
             cargarTodasLasAreas();
             cargarAuditores();
            
+            // Inicializar estado de conexión
             updateConnectionStatus();
             window.addEventListener('online', updateConnectionStatus);
             window.addEventListener('offline', updateConnectionStatus);
            
+            // Botón de sincronización manual
             document.getElementById('btn-sync').addEventListener('click', syncOfflineData);
+           
+            // Botón para guardar progreso
             document.getElementById('guardar-progreso').addEventListener('click', guardarProgreso);
 
+            // Toggle menu móvil
             document.getElementById('menu-toggle').addEventListener('click', function() {
                 const menu = document.getElementById('nav-menu');
                 menu.classList.toggle('active');
                 
+                // Cambiar icono según estado
                 const icon = this.querySelector('i');
                 if (menu.classList.contains('active')) {
                     icon.classList.remove('fa-bars');
@@ -1823,6 +1924,7 @@
                 }
             });
             
+            // Cerrar menú al hacer clic en un enlace (para móviles)
             document.querySelectorAll('#nav-menu .nav-link').forEach(link => {
                 link.addEventListener('click', function() {
                     const menu = document.getElementById('nav-menu');
@@ -1844,12 +1946,21 @@
                 request.onupgradeneeded = (event) => {
                     db = event.target.result;
                    
+                    // Crear almacén para auditorías
                     if (!db.objectStoreNames.contains(STORE_AUDITS)) {
                         const auditsStore = db.createObjectStore(STORE_AUDITS, {
                             keyPath: "id",
                             autoIncrement: true
                         });
                         auditsStore.createIndex("status", "status", { unique: false });
+                        auditsStore.createIndex("timestamp", "timestamp", { unique: false });
+                    }
+                    
+                    // Crear almacén para sesión
+                    if (!db.objectStoreNames.contains(STORE_SESSION)) {
+                        db.createObjectStore(STORE_SESSION, {
+                            keyPath: "key"
+                        });
                     }
                 };
                
@@ -1863,22 +1974,144 @@
                 };
             });
         }
+        
+        // Guardar datos de sesión
+        async function saveSessionData() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    reject("Base de datos no inicializada");
+                    return;
+                }
+                
+                const transaction = db.transaction([STORE_SESSION], "readwrite");
+                const store = transaction.objectStore(STORE_SESSION);
+                
+                const sessionData = {
+                    key: "currentUser",
+                    user: currentUser,
+                    auditorData: auditorData,
+                    respuestas: respuestas,
+                    preguntasPorArea: preguntasPorArea,
+                    currentAuditId: currentAuditId
+                };
+                
+                const request = store.put(sessionData);
+                
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+        
+        // Restaurar datos de sesión
+        async function restoreSession() {
+            return new Promise((resolve, reject) => {
+                if (!db) {
+                    resolve();
+                    return;
+                }
+                
+                const transaction = db.transaction([STORE_SESSION], "readonly");
+                const store = transaction.objectStore(STORE_SESSION);
+                const request = store.get("currentUser");
+                
+                request.onsuccess = (event) => {
+                    const sessionData = event.target.result;
+                    if (sessionData) {
+                        currentUser = sessionData.user;
+                        auditorData = sessionData.auditorData || {};
+                        respuestas = sessionData.respuestas || {};
+                        preguntasPorArea = sessionData.preguntasPorArea || [];
+                        currentAuditId = sessionData.currentAuditId || null;
+                        
+                        if (currentUser) {
+                            updateUserBar();
+                            document.getElementById('user-name').textContent = currentUser.name;
+                            document.getElementById('nombre-auditor').value = currentUser.name;
+                            document.getElementById('login').classList.remove('active');
+                            document.getElementById('main-app').style.display = 'block';
+                            
+                            // Si hay una auditoría en progreso, cargarla
+                            if (currentAuditId) {
+                                cargarAuditoriaGuardada(currentAuditId);
+                                showPage('auditoria');
+                            } else {
+                                showPage('inicio');
+                            }
+                        }
+                    }
+                    resolve();
+                };
+                
+                request.onerror = (event) => {
+                    console.error("Error al restaurar sesión:", event.target.error);
+                    resolve();
+                };
+            });
+        }
+
+        // Función para guardado automático
+        function autoSave() {
+            // Limpiar timeout anterior si existe
+            if (autoSaveTimeout) {
+                clearTimeout(autoSaveTimeout);
+            }
+            
+            // Establecer nuevo timeout
+            autoSaveTimeout = setTimeout(async () => {
+                if (Object.keys(respuestas).length > 0 && Object.keys(auditorData).length > 0) {
+                    try {
+                        await saveAuditToLocalDB({
+                            auditorData: auditorData,
+                            respuestas: respuestas,
+                            preguntasPorArea: preguntasPorArea
+                        }, "draft");
+                        
+                        // Guardar también en sesión
+                        await saveSessionData();
+                        
+                        // Mostrar indicador de guardado
+                        const indicator = document.getElementById('auto-save-indicator');
+                        indicator.classList.add('mostrar');
+                        
+                        setTimeout(() => {
+                            indicator.classList.remove('mostrar');
+                        }, 2000);
+                    } catch (error) {
+                        console.error("Error en guardado automático:", error);
+                    }
+                }
+            }, 2000); // Guardar después de 2 segundos de inactividad
+        }
        
         // Guardar auditoría en IndexedDB
         async function saveAuditToLocalDB(auditData, status = "draft") {
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([STORE_AUDITS], "readwrite");
                 const store = transaction.objectStore(STORE_AUDITS);
+                
+                // Si ya existe una auditoría con este ID, actualizarla
+                let request;
+                if (currentAuditId) {
+                    auditData.id = currentAuditId;
+                    request = store.put({
+                        ...auditData,
+                        timestamp: new Date(),
+                        status: status
+                    });
+                } else {
+                    request = store.add({
+                        ...auditData,
+                        timestamp: new Date(),
+                        status: status
+                    });
+                }
                
-                const auditRecord = {
-                    ...auditData,
-                    timestamp: new Date(),
-                    status: status
+                request.onsuccess = (event) => {
+                    if (!currentAuditId) {
+                        currentAuditId = event.target.result;
+                    }
+                    resolve(event.target.result);
                 };
-               
-                const request = store.add(auditRecord);
-               
-                request.onsuccess = () => resolve(request.result);
                 request.onerror = (event) => reject(event.target.error);
             });
         }
@@ -1943,16 +2176,19 @@
             }
            
             try {
+                // Mostrar estado de sincronización
                 const syncButton = document.getElementById('btn-sync');
                 const originalText = syncButton.innerHTML;
                 syncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando...';
                 syncButton.disabled = true;
                 document.getElementById('sync-container').classList.add('syncing');
                 
+                // 1. Sincronizar auditorías pendientes
                 const pendingAudits = await getPendingAudits();
                
                 for (const audit of pendingAudits) {
                     try {
+                        // Enviar auditoría al servidor
                         const response = await fetch(SCRIPT_URL, {
                             method: 'POST',
                             body: JSON.stringify({
@@ -1972,6 +2208,7 @@
                         const data = await response.json();
                        
                         if (data.status === "success") {
+                            // Eliminar de la base de datos local
                             await deleteSavedAudit(audit.id);
                         }
                     } catch (error) {
@@ -2062,6 +2299,7 @@
                     ];
                     chartDistribucion.update();
                    
+                    // Actualizar gráfico de preguntas
                     if (chartPreguntas) chartPreguntas.destroy();
                     const ctxPreguntas = document.getElementById('chart-preguntas').getContext('2d');
                     chartPreguntas = new Chart(ctxPreguntas, {
@@ -2102,10 +2340,12 @@
                         }
                     });
                    
+                    // Nuevo gráfico de barras por área
                     if (chartAreas) chartAreas.destroy();
                     if (data.areasData && data.areasData.labels.length > 0) {
                         const ctxAreas = document.getElementById('chart-areas').getContext('2d');
                         
+                        // Ordenar de mayor a menor cumplimiento
                         const combined = data.areasData.labels.map((label, i) => ({
                             label,
                             value: data.areasData.values[i]
@@ -2178,21 +2418,35 @@
                     }
                 }
                
-                // CÁLCULO CORREGIDO: Excluir "No aplica" del total
+                // CÁLCULO CORREGIDO DE PORCENTAJES - Excluyendo "No aplica"
                 const totalPreguntas = preguntasPorArea.length;
-                const noAplica = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
-                const totalAplican = totalPreguntas - noAplica;
+                const noAplicaCount = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
+                const totalPreguntasValidas = totalPreguntas - noAplicaCount;
 
                 const cumple = Object.values(respuestas).filter(r => r.estado === 'cumple').length;
                 const parcial = Object.values(respuestas).filter(r => r.estado === 'parcial').length;
                 const noCumple = Object.values(respuestas).filter(r => r.estado === 'no_cumple').length;
-               
-                // Calcular porcentajes solo sobre preguntas que aplican
-                let porcCumple = totalAplican > 0 ? Math.round((cumple / totalAplican) * 100) : 0;
-                let porcParcial = totalAplican > 0 ? Math.round((parcial / totalAplican) * 100) : 0;
-                let porcNoCumple = totalAplican > 0 ? Math.round((noCumple / totalAplican) * 100) : 0;
-                let porcNoAplica = Math.round((noAplica / totalPreguntas) * 100);
 
+                // Si no hay preguntas válidas, evitar división por cero
+                let porcCumple = totalPreguntasValidas > 0 ? Math.round((cumple / totalPreguntasValidas) * 100) : 0;
+                let porcParcial = totalPreguntasValidas > 0 ? Math.round((parcial / totalPreguntasValidas) * 100) : 0;
+                let porcNoCumple = totalPreguntasValidas > 0 ? Math.round((noCumple / totalPreguntasValidas) * 100) : 0;
+                let porcNoAplica = Math.round((noAplicaCount / totalPreguntas) * 100);
+
+                // Ajustar redondeo para que los porcentajes válidos sumen 100%
+                const totalValido = porcCumple + porcParcial + porcNoCumple;
+                if (totalValido !== 100 && totalPreguntasValidas > 0) {
+                    // Ajustar el porcentaje más grande
+                    const maxValue = Math.max(porcCumple, porcParcial, porcNoCumple);
+                    if (maxValue === porcCumple) {
+                        porcCumple += 100 - totalValido;
+                    } else if (maxValue === porcParcial) {
+                        porcParcial += 100 - totalValido;
+                    } else {
+                        porcNoCumple += 100 - totalValido;
+                    }
+                }
+ 
                 // Determinar resultado general
                 let resultado = "Cumplimiento Total";
                 let color = "var(--success)";
@@ -2202,7 +2456,7 @@
                     color = "var(--warning)";
                 }
                
-                if (noCumple > totalAplican * 0.1) {
+                if (noCumple > totalPreguntasValidas * 0.1) {
                     resultado = "No Cumple";
                     color = "var(--danger)";
                 }
@@ -2228,7 +2482,9 @@
                     });
                 });
                
+                // Verificar conexión para envío
                 if (!navigator.onLine) {
+                    // Guardar en base de datos local como "pending"
                     await saveAuditToLocalDB({
                         auditorData: auditorData,
                         respuestas: respuestas,
@@ -2279,6 +2535,11 @@
                     showPage('reportes');
                    
                     cargarReportes();
+                    
+                    // Limpiar datos de sesión
+                    currentAuditId = null;
+                    respuestas = {};
+                    await saveSessionData();
                 } else {
                     throw new Error(data.message || "Error en el servidor");
                 }
@@ -2298,14 +2559,16 @@
             }
            
             try {
-                const auditId = await saveAuditToLocalDB({
+                await saveAuditToLocalDB({
                     auditorData: auditorData,
                     respuestas: respuestas,
                     preguntasPorArea: preguntasPorArea
                 }, "draft");
+                
+                // Guardar también en sesión
+                await saveSessionData();
                
-                alert(`Progreso guardado (ID: ${auditId}). Puedes continuar más tarde.`);
-                showPage('guardadas');
+                alert('Progreso guardado. Puedes continuar más tarde.');
                
             } catch (error) {
                 alert('Error al guardar: ' + error.message);
@@ -2346,6 +2609,7 @@
                     container.appendChild(auditElement);
                 });
                
+                // Event listeners para los botones
                 document.querySelectorAll('.continuar-auditoria').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const auditId = this.getAttribute('data-id');
@@ -2377,17 +2641,25 @@
                     const audit = event.target.result;
                     if (!audit) throw new Error("Auditoría no encontrada");
                    
+                    // Cargar datos en las variables globales
                     auditorData = audit.auditorData;
                     respuestas = audit.respuestas;
                     preguntasPorArea = audit.preguntasPorArea;
+                    currentAuditId = audit.id;
                    
+                    // Guardar en sesión
+                    saveSessionData();
+                   
+                    // Actualizar UI
                     document.getElementById('current-auditor').textContent = auditorData.nombre;
                     document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
                     document.getElementById('current-area').textContent = formatName(auditorData.area);
                     document.getElementById('current-date').textContent = auditorData.fecha;
                    
+                    // Generar preguntas con respuestas cargadas
                     generarPreguntas();
                    
+                    // Mostrar sección de auditoría
                     showPage('auditoria');
                 };
                
@@ -2426,6 +2698,10 @@
                     document.getElementById('nombre-auditor').value = currentUser.name;
                     document.getElementById('login').classList.remove('active');
                     document.getElementById('main-app').style.display = 'block';
+                    
+                    // Guardar sesión
+                    await saveSessionData();
+                    
                     showPage('inicio');
                 } else {
                     showMessage(data.message || "Credenciales incorrectas", 'error');
@@ -2486,8 +2762,18 @@
         }
        
         // Logout
-        function logout() {
+        async function logout() {
+            // Limpiar datos de sesión
+            const transaction = db.transaction([STORE_SESSION], "readwrite");
+            const store = transaction.objectStore(STORE_SESSION);
+            store.delete("currentUser");
+            
             currentUser = null;
+            auditorData = {};
+            respuestas = {};
+            preguntasPorArea = [];
+            currentAuditId = null;
+            
             document.getElementById('main-app').style.display = 'none';
             document.getElementById('login').classList.add('active');
             document.getElementById('login-email').value = '';
@@ -2530,6 +2816,7 @@
             }
            
             try {
+                // Verificar caché primero
                 const cacheKey = `preguntas-${area}`;
                 const cachedPreguntas = localStorage.getItem(cacheKey);
                
@@ -2558,14 +2845,16 @@
                 return;
             }
            
-            // Inicializar respuestas como objeto vacío
-            respuestas = {};
             auditorData = {
                 nombre: nombre,
                 unidad: unidad,
                 area: area,
                 fecha: fecha
             };
+            
+            // Inicializar respuestas vacías
+            respuestas = {};
+            currentAuditId = null;
            
             document.getElementById('current-auditor').textContent = nombre;
             document.getElementById('current-unidad').textContent = document.querySelector(`#unidad-negocio option[value="${unidad}"]`).textContent;
@@ -2578,50 +2867,52 @@
             document.getElementById('reporte-fecha').textContent = fecha;
            
             generarPreguntas();
+            
+            // Guardar en sesión
+            await saveSessionData();
            
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.querySelector('.nav-link[data-page="auditoria"]').classList.add('active');
             showPage('auditoria');
         }
        
-        // Generar preguntas de auditoría (con agrupación por prerrequisito)
+        // Generar preguntas de auditoría
         function generarPreguntas() {
             const container = document.getElementById('preguntas-container');
             container.innerHTML = '';
-
+            
             // Agrupar preguntas por categoría
-            const preguntasPorCategoria = {};
+            const categorias = {};
             preguntasPorArea.forEach(pregunta => {
-                if (!preguntasPorCategoria[pregunta.categoria]) {
-                    preguntasPorCategoria[pregunta.categoria] = [];
+                if (!categorias[pregunta.categoria]) {
+                    categorias[pregunta.categoria] = [];
                 }
-                preguntasPorCategoria[pregunta.categoria].push(pregunta);
+                categorias[pregunta.categoria].push(pregunta);
             });
-
-            // Para cada categoría
-            Object.keys(preguntasPorCategoria).forEach(categoria => {
-                const categoriaElement = document.createElement('div');
-                categoriaElement.className = 'categoria-card';
-                categoriaElement.innerHTML = `
-                    <div class="categoria-header">
-                        <h3>${categoria}</h3>
-                        <button class="btn-toggle"><i class="fas fa-chevron-down"></i></button>
+            
+            // Crear acordeones por categoría
+            Object.keys(categorias).forEach(categoria => {
+                const acordeon = document.createElement('div');
+                acordeon.className = 'acordeon-categoria';
+                
+                const preguntasCategoria = categorias[categoria];
+                const preguntasRespondidas = preguntasCategoria.filter(p => respuestas[p.id] && respuestas[p.id].estado).length;
+                
+                acordeon.innerHTML = `
+                    <div class="acordeon-titulo">
+                        <h3><i class="fas fa-folder"></i> ${categoria} <span class="contador-preguntas">${preguntasRespondidas}/${preguntasCategoria.length}</span></h3>
+                        <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="preguntas-categoria" style="display: none;"></div>
+                    <div class="acordeon-contenido">
+                        <!-- Preguntas de esta categoría -->
+                    </div>
                 `;
-                container.appendChild(categoriaElement);
-
-                const preguntasContainer = categoriaElement.querySelector('.preguntas-categoria');
-                const toggleBtn = categoriaElement.querySelector('.btn-toggle');
-
-                toggleBtn.addEventListener('click', function() {
-                    const isOpen = preguntasContainer.style.display === 'block';
-                    preguntasContainer.style.display = isOpen ? 'none' : 'block';
-                    this.querySelector('i').className = isOpen ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
-                });
-
-                // Generar preguntas para esta categoría
-                preguntasPorCategoria[categoria].forEach((pregunta) => {
+                
+                container.appendChild(acordeon);
+                
+                const contenido = acordeon.querySelector('.acordeon-contenido');
+                
+                preguntasCategoria.forEach((pregunta, index) => {
                     const preguntaElement = document.createElement('div');
                     preguntaElement.className = 'pregunta-card';
                     preguntaElement.innerHTML = `
@@ -2659,8 +2950,8 @@
                             <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa observaciones relevantes"></textarea>
                         </div>
                     `;
-                    preguntasContainer.appendChild(preguntaElement);
-                    
+                    contenido.appendChild(preguntaElement);
+                   
                     const opciones = preguntaElement.querySelectorAll('.opcion');
                     opciones.forEach(opcion => {
                         opcion.addEventListener('click', function() {
@@ -2679,6 +2970,14 @@
                            
                             opciones.forEach(o => o.classList.remove('selected'));
                             this.classList.add('selected');
+                            
+                            // Actualizar contador de preguntas respondidas
+                            const contador = acordeon.querySelector('.contador-preguntas');
+                            const nuevasRespondidas = preguntasCategoria.filter(p => respuestas[p.id] && respuestas[p.id].estado).length;
+                            contador.textContent = `${nuevasRespondidas}/${preguntasCategoria.length}`;
+                            
+                            // Guardado automático
+                            autoSave();
                         });
                     });
                    
@@ -2689,6 +2988,7 @@
                         cameraInput.click();
                     });
                    
+                    // Capturamos el id de la pregunta en una variable local
                     const currentPreguntaId = pregunta.id;
                    
                     cameraInput.addEventListener('change', async function(e) {
@@ -2697,13 +2997,19 @@
                             const reader = new FileReader();
                            
                             reader.onload = async function(event) {
+                                // Comprimir imagen antes de subir
                                 const compressedImg = await compressImage(file);
                                
                                 cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
                                
+                                // Verificar conexión para subir
                                 if (!navigator.onLine) {
+                                    // Guardar evidencia localmente
                                     respuestas[currentPreguntaId].evidenciaUrl = compressedImg;
                                     alert('Evidencia guardada localmente. Se subirá con conexión.');
+                                    
+                                    // Guardado automático
+                                    autoSave();
                                     return;
                                 }
                                
@@ -2712,7 +3018,7 @@
                                         method: 'POST',
                                         body: JSON.stringify({
                                             action: "uploadImage",
-                                            image: compressedImg.split(',')[1]
+                                            image: compressedImg.split(',')[1] // Solo la parte base64
                                         })
                                     });
                                    
@@ -2721,6 +3027,9 @@
                                     if (data.status === "success") {
                                         if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
                                         respuestas[currentPreguntaId].evidenciaUrl = data.url;
+                                        
+                                        // Guardado automático
+                                        autoSave();
                                     } else {
                                         throw new Error(data.message || "Error al subir imagen");
                                     }
@@ -2740,28 +3049,56 @@
                     document.getElementById(`observaciones-${pregunta.id}`).addEventListener('input', function(e) {
                         if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
                         respuestas[pregunta.id].observaciones = e.target.value;
+                        
+                        // Guardado automático
+                        autoSave();
                     });
                    
                     // Cargar respuesta guardada si existe
                     if (respuestas[pregunta.id]) {
                         const respuesta = respuestas[pregunta.id];
                        
+                        // Seleccionar opción
                         if (respuesta.estado) {
                             const opcion = preguntaElement.querySelector(`.opcion[data-value="${respuesta.estado}"]`);
                             if (opcion) {
                                 opcion.click();
                                
+                                // Cargar evidencia si existe
                                 if (respuesta.evidenciaUrl) {
                                     cameraPreview.innerHTML = `<img src="${respuesta.evidenciaUrl}" alt="Evidencia fotográfica">`;
                                 }
                             }
                         }
                        
+                        // Cargar observaciones
                         if (respuesta.observaciones) {
                             document.getElementById(`observaciones-${pregunta.id}`).value = respuesta.observaciones;
                         }
                     }
                 });
+                
+                // Evento para toggle del acordeón
+                acordeon.querySelector('.acordeon-titulo').addEventListener('click', function() {
+                    this.classList.toggle('activo');
+                    const icono = this.querySelector('i');
+                    icono.classList.toggle('fa-chevron-down');
+                    icono.classList.toggle('fa-chevron-up');
+                    
+                    const contenido = this.nextElementSibling;
+                    if (contenido.classList.contains('abierto')) {
+                        contenido.classList.remove('abierto');
+                        contenido.style.maxHeight = '0';
+                    } else {
+                        contenido.classList.add('abierto');
+                        contenido.style.maxHeight = contenido.scrollHeight + 'px';
+                    }
+                });
+                
+                // Abrir la primera categoría por defecto
+                if (Object.keys(categorias)[0] === categoria) {
+                    acordeon.querySelector('.acordeon-titulo').click();
+                }
             });
         }
        
@@ -2776,6 +3113,7 @@
                         const canvas = document.createElement('canvas');
                         const ctx = canvas.getContext('2d');
                        
+                        // Redimensionar si es muy grande
                         const MAX_WIDTH = 1024;
                         const MAX_HEIGHT = 1024;
                         let width = img.width;
@@ -2919,6 +3257,7 @@
                 }
             });
            
+            // Gráfico de áreas vacío
             chartAreas = new Chart(ctxAreas, {
                 type: 'bar',
                 data: {
@@ -3122,7 +3461,7 @@
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        action: "exportAudits",
+                        action: 'exportAudits',
                         fechaInicio: fechaInicio,
                         fechaFin: fechaFin,
                         area: area
@@ -3198,8 +3537,10 @@
                 const data = await response.json();
                
                 if (data.status === "success") {
+                    // Actualizar currentUser con los datos del perfil
                     currentUser = { ...currentUser, ...data.user };
                    
+                    // Actualizar UI
                     document.getElementById('profile-name').textContent = data.user.name;
                     document.getElementById('profile-email').textContent = data.user.email;
                     document.getElementById('edit-name').value = data.user.name;
@@ -3243,6 +3584,7 @@
             try {
                 let fotoUrl = currentUser.fotoPerfil;
                
+                // Subir nueva foto si existe
                 if (file) {
                     const compressedImg = await compressImage(file);
                    
@@ -3251,7 +3593,7 @@
                             method: 'POST',
                             body: JSON.stringify({
                                 action: "uploadImage",
-                                image: compressedImg.split(',')[1]
+                                image: compressedImg.split(',')[1] // Solo la parte base64
                             })
                         });
                        
@@ -3270,6 +3612,7 @@
                     }
                 }
                
+                // Guardar perfil
                 try {
                     const response = await fetch(SCRIPT_URL, {
                         method: 'POST',
@@ -3290,11 +3633,15 @@
                         currentUser.unidad = unidad;
                         currentUser.fotoPerfil = fotoUrl;
                        
+                        // Actualizar fotos inmediatamente
                         document.getElementById('profile-picture').src = fotoUrl;
                         document.getElementById('user-photo').src = fotoUrl;
                        
                         updateUserBar();
                         document.getElementById('profile-photo').value = '';
+                        
+                        // Guardar sesión
+                        await saveSessionData();
                     } else {
                         throw new Error(data.message);
                     }
@@ -3387,6 +3734,7 @@
             }
            
             try {
+                // Verificar caché
                 if (areasCache[unidad]) {
                     renderAreasSelect(areaSelect, areasCache[unidad]);
                     return;
@@ -3420,6 +3768,7 @@
             areaSelect.innerHTML = '<option value="">Cargando áreas...</option>';
            
             try {
+                // Si no se selecciona unidad (Todas las unidades), cargar todas las áreas
                 if (!unidad) {
                     areaSelect.innerHTML = '<option value="">Todas las áreas</option>';
                     if (allAreas && allAreas.length > 0) {
@@ -3433,6 +3782,7 @@
                     return;
                 }
                
+                // Verificar caché
                 if (areasCache[unidad]) {
                     areaSelect.innerHTML = '<option value="">Todas las áreas</option>';
                     areasCache[unidad].forEach(area => {
@@ -3487,6 +3837,7 @@
                 if (data.status === "success") {
                     allAreas = data.areas;
                    
+                    // Actualizar selects de áreas
                     llenarSelectAreas('filtro-area-reporte', allAreas);
                     llenarSelectAreas('area-exportar', allAreas);
                     llenarSelectAreas('filtro-area', allAreas);
