@@ -1091,114 +1091,6 @@
         
         #sync-container.syncing {
             background: rgba(255, 215, 0, 0.2);
-
-        }
-        /* Nuevos estilos para agrupación de preguntas */
-        .categoria-container {
-            margin-bottom: 25px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .categoria-header {
-            background: linear-gradient(to right, var(--primary) 0%, var(--primary-dark) 100%);
-            color: white;
-            padding: 15px 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .categoria-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
-        }
-
-        .categoria-content {
-            padding: 0;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .categoria-content.expanded {
-            max-height: 5000px; /* Valor suficientemente grande para expandir */
-        }
-
-        .progress-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .progress-bar-mini {
-            flex-grow: 1;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--secondary);
-            border-radius: 4px;
-            transition: width 0.3s ease;
-        }
-
-        /* Estilos para preguntas anidadas */
-        .pregunta-card {
-            margin: 15px;
-            padding: 20px;
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            border-left: 5px solid var(--secondary);
-        }
-
-        /* Estilos para estado offline */
-        .offline-warning {
-            background: #fef5e7;
-            border: 1px solid #f39c12;
-            color: #c05621;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Estilos para botones de guardado */
-        .save-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            color: var(--text-light);
-            margin-top: 10px;
-        }
-
-        .last-saved {
-            font-style: italic;
-        }
-
-        /* Mejoras responsive */
-        @media (max-width: 768px) {
-            .categoria-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-
-            .categoria-header h3 {
-                font-size: 1rem;
-            }
         }
     </style>
 </head>
@@ -1324,14 +1216,6 @@
                             <option value="dulcinea_chiapas">Dulcinea - Chiapas</option>
                             <option value="dulcinea_michoacan">Dulcinea Michoacán</option>
                             <option value="cafetalera_cordoba">Cafetalera - Cordoba</option>
-                            <!-- Nuevas unidades -->
-                            <option value="almacen_tamarindos">Almacén Tamarindos</option>
-                            <option value="almacen_5_febrero">Almacén 5 de Febrero</option>
-                            <option value="almacen_cafetalera">Almacén Cafetalera</option>
-                            <option value="almacen_argo">Almacén Argo</option>
-                            <option value="almacen_tinaja">Almacén Tinaja</option>
-                            <option value="almacen_fortin">Almacén Fortin</option>
-                            <option value="almacen_san_sebastian">Almacén San Sebastián</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1348,12 +1232,6 @@
                     <button class="btn btn-primary" id="iniciar-auditoria">
                         <i class="fas fa-play-circle"></i> Iniciar Auditoría
                     </button>
-
-                    <!-- Nuevo: Cargar borrador existente -->
-                    <div id="drafts-container" style="margin-top: 20px; display: none;">
-                        <h3><i class="fas fa-history"></i> Borradores Existentes</h3>
-                        <div id="drafts-list"></div>
-                    </div>
                 </div>
                
                 <div class="form-section">
@@ -1366,23 +1244,15 @@
                         <li>Al finalizar, se generará un reporte ejecutivo en PDF</li>
                         <li>Puedes compartir el reporte por correo o WhatsApp</li>
                         <li>Los administradores recibirán notificaciones de incumplimientos</li>
-                        <li><strong>Nuevo:</strong> Tu progreso se guarda automáticamente y puedes continuar más tarde</li>
                     </ul>
                     <p>Toda la información se almacena de forma segura en Google Sheets para su posterior análisis.</p>
                 </div>
             </section>
            
-             <!-- Sección Auditoría -->
+            <!-- Sección Auditoría -->
             <section id="auditoria" class="page-section">
                 <div class="form-section">
                     <h2 class="form-title"><i class="fas fa-file-alt"></i> Cuestionario de Auditoría</h2>
-                    
-                    <!-- Estado de guardado -->
-                    <div class="save-status">
-                        <span id="save-indicator" class="sync-status sync-offline"></span>
-                        <span id="last-saved" class="last-saved">No guardado</span>
-                    </div>
-                    
                     <div id="auditor-info" style="background: #fff9e6; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                         <p><strong>Auditor:</strong> <span id="current-auditor">-</span></p>
                         <p><strong>Unidad:</strong> <span id="current-unidad">-</span></p>
@@ -1390,7 +1260,7 @@
                         <p><strong>Fecha:</strong> <span id="current-date">-</span></p>
                     </div>
                    
-                    <!-- Preguntas de auditoría agrupadas por categoría -->
+                    <!-- Preguntas de auditoría -->
                     <div id="preguntas-container">
                         <!-- Las preguntas se generarán dinámicamente con JavaScript -->
                     </div>
@@ -1802,7 +1672,7 @@
         </footer>
     </div>
    
-   <script>
+    <script>
         // URL de tu Google Apps Script
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxxNVIK8OYeDTDtP9baKTdtZCfIHEe628j1jE3KeIyDAb1Mj3U3rJUzaybtvX-xX-u/exec";
        
@@ -1816,10 +1686,13 @@
         let areasCache = {};
         let allAreas = [];
         let auditores = [];
-        let currentDraftId = null;
-        let autoSaveInterval = null;
-        let lastSaveTime = null;
-
+       
+        // Base de datos local (IndexedDB)
+        let db;
+        const DB_NAME = "AuditoriaPPRDB";
+        const DB_VERSION = 1;
+        const STORE_AUDITS = "auditorias";
+       
         // Inicialización
         document.addEventListener('DOMContentLoaded', async function() {
             // Configurar fecha actual
@@ -1829,6 +1702,9 @@
             document.getElementById('filtro-fecha-fin-reporte').valueAsDate = today;
             document.getElementById('fecha-inicio-exportar').valueAsDate = new Date(today.getFullYear(), today.getMonth(), 1);
             document.getElementById('fecha-fin-exportar').valueAsDate = today;
+           
+            // Inicializar base de datos local
+            await initDB();
            
             // Event listeners para navegación
             document.querySelectorAll('.nav-link').forEach(link => {
@@ -1854,8 +1730,6 @@
                         loadProfile();
                     } else if (page === 'guardadas') {
                         cargarAuditoriasGuardadas();
-                    } else if (page === 'inicio') {
-                        checkForDrafts();
                     }
                 });
             });
@@ -1926,13 +1800,16 @@
             cargarTodasLasAreas();
             cargarAuditores();
            
-           // Inicializar estado de conexión
+            // Inicializar estado de conexión
             updateConnectionStatus();
             window.addEventListener('online', updateConnectionStatus);
             window.addEventListener('offline', updateConnectionStatus);
            
             // Botón de sincronización manual
             document.getElementById('btn-sync').addEventListener('click', syncOfflineData);
+           
+            // Botón para guardar progreso
+            document.getElementById('guardar-progreso').addEventListener('click', guardarProgreso);
 
             // Toggle menu móvil
             document.getElementById('menu-toggle').addEventListener('click', function() {
@@ -1962,481 +1839,596 @@
                     }
                 });
             });
-
-            // Iniciar autoguardado
-            startAutoSave();
         });
-
-        // Función para iniciar autoguardado
-        function startAutoSave() {
-            autoSaveInterval = setInterval(() => {
-                if (Object.keys(respuestas).length > 0 && currentUser) {
-                    guardarProgreso(false); // Guardar automáticamente sin notificación
-                }
-            }, 30000); // Guardar cada 30 segundos
+       
+        // Inicializar IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+               
+                request.onupgradeneeded = (event) => {
+                    db = event.target.result;
+                   
+                    // Crear almacén para auditorías
+                    if (!db.objectStoreNames.contains(STORE_AUDITS)) {
+                        const auditsStore = db.createObjectStore(STORE_AUDITS, {
+                            keyPath: "id",
+                            autoIncrement: true
+                        });
+                        auditsStore.createIndex("status", "status", { unique: false });
+                    }
+                };
+               
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve();
+                };
+               
+                request.onerror = (event) => {
+                    reject("Error al abrir la base de datos: " + event.target.error);
+                };
+            });
         }
-
-        // Función para verificar borradores existentes
-        async function checkForDrafts() {
-            if (!currentUser) return;
-            
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "getAllDrafts",
-                        userEmail: currentUser.email
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.status === "success" && data.drafts.length > 0) {
-                    const container = document.getElementById('drafts-container');
-                    const list = document.getElementById('drafts-list');
-                    
-                    container.style.display = 'block';
-                    list.innerHTML = '';
-                    
-                    data.drafts.forEach(draft => {
-                        const draftElement = document.createElement('div');
-                        draftElement.className = 'auditoria-guardada';
-                        draftElement.innerHTML = `
-                            <h4>${formatName(draft.area)} - ${draft.fecha}</h4>
-                            <p><strong>Unidad:</strong> ${formatName(draft.unidad)}</p>
-                            <p><strong>Guardado:</strong> ${new Date(draft.timestamp).toLocaleString()}</p>
-                            <button class="btn btn-primary cargar-borrador" data-id="${draft.id}">
-                                <i class="fas fa-edit"></i> Continuar este borrador
-                            </button>
-                            <button class="btn btn-danger eliminar-borrador" data-id="${draft.id}">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
-                        `;
-                        
-                        list.appendChild(draftElement);
-                    });
-                    
-                    // Event listeners para los botones
-                    document.querySelectorAll('.cargar-borrador').forEach(btn => {
-                        btn.addEventListener('click', async function() {
-                            const draftId = this.getAttribute('data-id');
-                            await cargarBorrador(draftId);
-                        });
-                    });
-                    
-                    document.querySelectorAll('.eliminar-borrador').forEach(btn => {
-                        btn.addEventListener('click', async function() {
-                            const draftId = this.getAttribute('data-id');
-                            if (confirm('¿Estás seguro de que quieres eliminar este borrador?')) {
-                                await eliminarBorrador(draftId);
-                                checkForDrafts();
-                            }
-                        });
-                    });
-                } else {
-                    document.getElementById('drafts-container').style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Error al cargar borradores:', error);
+       
+        // Guardar auditoría en IndexedDB
+        async function saveAuditToLocalDB(auditData, status = "draft") {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_AUDITS], "readwrite");
+                const store = transaction.objectStore(STORE_AUDITS);
+               
+                const auditRecord = {
+                    ...auditData,
+                    timestamp: new Date(),
+                    status: status
+                };
+               
+                const request = store.add(auditRecord);
+               
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+       
+        // Obtener auditorías guardadas
+        async function getSavedAudits() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_AUDITS], "readonly");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const index = store.index("status");
+                const request = index.getAll("draft");
+               
+                request.onsuccess = (event) => resolve(event.target.result || []);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+       
+        // Obtener auditorías pendientes
+        async function getPendingAudits() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_AUDITS], "readonly");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const index = store.index("status");
+                const request = index.getAll("pending");
+               
+                request.onsuccess = (event) => resolve(event.target.result || []);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+       
+        // Eliminar auditoría guardada
+        async function deleteSavedAudit(auditId) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([STORE_AUDITS], "readwrite");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const request = store.delete(Number(auditId));
+               
+                request.onsuccess = () => resolve();
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+       
+        // Actualizar estado de conexión
+        function updateConnectionStatus() {
+            const statusIndicator = document.getElementById('sync-status-indicator');
+            const syncButton = document.getElementById('btn-sync');
+           
+            if (navigator.onLine) {
+                statusIndicator.className = 'sync-status sync-online';
+                syncButton.style.display = 'inline-block';
+            } else {
+                statusIndicator.className = 'sync-status sync-offline';
+                syncButton.style.display = 'none';
             }
         }
-
-        // Función para cargar un borrador
-        async function cargarBorrador(draftId) {
+       
+        // Sincronizar datos offline
+        async function syncOfflineData() {
+            if (!navigator.onLine) {
+                alert("No hay conexión a internet. Conéctate para sincronizar.");
+                return;
+            }
+           
+            try {
+                // Mostrar estado de sincronización
+                const syncButton = document.getElementById('btn-sync');
+                const originalText = syncButton.innerHTML;
+                syncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sincronizando...';
+                syncButton.disabled = true;
+                document.getElementById('sync-container').classList.add('syncing');
+                
+                // 1. Sincronizar auditorías pendientes
+                const pendingAudits = await getPendingAudits();
+               
+                for (const audit of pendingAudits) {
+                    try {
+                        // Enviar auditoría al servidor
+                        const response = await fetch(SCRIPT_URL, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                action: "submitAudit",
+                                auditor: audit.auditorData.nombre,
+                                unidad: audit.auditorData.unidad,
+                                area: audit.auditorData.area,
+                                fecha: audit.auditorData.fecha,
+                                preguntas: audit.preguntas,
+                                porcCumple: audit.porcCumple,
+                                porcParcial: audit.porcParcial,
+                                porcNoCumple: audit.porcNoCumple,
+                                porcNoAplica: audit.porcNoAplica
+                            })
+                        });
+                       
+                        const data = await response.json();
+                       
+                        if (data.status === "success") {
+                            // Eliminar de la base de datos local
+                            await deleteSavedAudit(audit.id);
+                        }
+                    } catch (error) {
+                        console.error("Error sincronizando auditoría:", error);
+                    }
+                }
+               
+                alert('Sincronización completada con éxito');
+                cargarAuditoriasGuardadas();
+               
+            } catch (error) {
+                console.error("Error en sincronización:", error);
+                alert('Error durante la sincronización: ' + error.message);
+            } finally {
+                const syncButton = document.getElementById('btn-sync');
+                syncButton.innerHTML = '<i class="fas fa-sync-alt"></i> Sincronizar';
+                syncButton.disabled = false;
+                document.getElementById('sync-container').classList.remove('syncing');
+            }
+        }
+       
+        // Función para visualizar PDF
+        function mostrarPDF(url) {
+            const viewer = document.getElementById('pdf-viewer');
+            const container = document.getElementById('pdf-viewer-container');
+           
+            if (url) {
+                viewer.src = url;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        }
+ 
+        // Función para descargar PDF
+        function generarPDF() {
+            const pdfUrl = document.getElementById('reporte-pdf-url').value;
+            if (pdfUrl) {
+                const downloadUrl = pdfUrl.replace('/preview', '?export=download');
+                window.open(downloadUrl, '_blank');
+            } else {
+                alert('El PDF aún no está disponible. Por favor intente nuevamente en unos momentos.');
+            }
+        }
+ 
+        // Función para cargar dashboard
+        async function cargarDashboard() {
+            const loader = document.getElementById('dashboard-loader');
+            const content = document.getElementById('dashboard-content');
+            const fecha = document.getElementById('filtro-fecha').value;
+            const area = document.getElementById('filtro-area').value;
+            const unidadSelect = document.getElementById('filtro-unidad');
+            const unidad = unidadSelect.value;
+            const unidadText = unidad ? unidadSelect.options[unidadSelect.selectedIndex].text : '';
+           
+            loader.style.display = 'block';
+            content.style.opacity = '0.3';
+           
             try {
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
-                        action: "loadDraft",
-                        draftId: draftId,
-                        userEmail: currentUser.email
+                        action: "getDashboardData",
+                        fecha: fecha,
+                        area: area,
+                        unidad: unidadText
                     })
                 });
-                
+               
                 const data = await response.json();
-                
+               
                 if (data.status === "success") {
-                    const draft = data.draft;
-                    
+                    document.getElementById('stat-cumple').textContent = data.porcCumple + '%';
+                    document.getElementById('stat-parcial').textContent = data.porcParcial + '%';
+                    document.getElementById('stat-no-cumple').textContent = data.porcNoCumple + '%';
+                    document.getElementById('stat-no-aplica').textContent = data.porcNoAplica + '%';
+                   
+                    document.getElementById('progress-cumple').style.width = data.porcCumple + '%';
+                    document.getElementById('progress-parcial').style.width = data.porcParcial + '%';
+                    document.getElementById('progress-no-cumple').style.width = data.porcNoCumple + '%';
+                    document.getElementById('progress-no-aplica').style.width = data.porcNoAplica + '%';
+                   
+                    chartDistribucion.data.datasets[0].data = [
+                        data.porcCumple,
+                        data.porcParcial,
+                        data.porcNoCumple,
+                        data.porcNoAplica
+                    ];
+                    chartDistribucion.update();
+                   
+                    // Actualizar gráfico de preguntas
+                    if (chartPreguntas) chartPreguntas.destroy();
+                    const ctxPreguntas = document.getElementById('chart-preguntas').getContext('2d');
+                    chartPreguntas = new Chart(ctxPreguntas, {
+                        type: 'bar',
+                        data: {
+                            labels: data.preguntasData.labels,
+                            datasets: [{
+                                label: '% Cumplimiento',
+                                data: data.preguntasData.values,
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    ticks: {
+                                        autoSkip: false,
+                                        maxRotation: 45,
+                                        minRotation: 45,
+                                        font: {
+                                            size: 10
+                                        }
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value + '%';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                   
+                    // Nuevo gráfico de barras por área
+                    if (chartAreas) chartAreas.destroy();
+                    if (data.areasData && data.areasData.labels.length > 0) {
+                        const ctxAreas = document.getElementById('chart-areas').getContext('2d');
+                        
+                        // Ordenar de mayor a menor cumplimiento
+                        const combined = data.areasData.labels.map((label, i) => ({
+                            label,
+                            value: data.areasData.values[i]
+                        }));
+                        
+                        combined.sort((a, b) => b.value - a.value);
+                        
+                        const sortedLabels = combined.map(item => item.label);
+                        const sortedValues = combined.map(item => item.value);
+                        
+                        chartAreas = new Chart(ctxAreas, {
+                            type: 'bar',
+                            data: {
+                                labels: sortedLabels,
+                                datasets: [{
+                                    label: '% Cumplimiento',
+                                    data: sortedValues,
+                                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        max: 100,
+                                        ticks: {
+                                            callback: function(value) {
+                                                return value + '%';
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+                    }
+                   
+                } else {
+                    throw new Error(data.message || "Error al cargar datos");
+                }
+            } catch (error) {
+                console.error("Error en dashboard:", error);
+                alert('Error al cargar datos: ' + error.message);
+            } finally {
+                loader.style.display = 'none';
+                content.style.opacity = '1';
+            }
+        }
+       
+        // Función para finalizar auditoría
+        async function finalizarAuditoria() {
+            const btn = document.getElementById('finalizar-auditoria');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+           
+            try {
+                const preguntasContestadas = Object.keys(respuestas).length;
+                if (preguntasContestadas < preguntasPorArea.length) {
+                    alert('Por favor responde todas las preguntas antes de finalizar la auditoría.');
+                    return;
+                }
+               
+                for (const pregunta of preguntasPorArea) {
+                    const respuesta = respuestas[pregunta.id] || {};
+                    if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && !respuesta.evidenciaUrl) {
+                        alert(`Por favor, adjunta evidencia fotográfica para la pregunta ${pregunta.id}`);
+                        return;
+                    }
+                }
+               
+                // CÁLCULO CORREGIDO DE PORCENTAJES
+                const totalPreguntas = preguntasPorArea.length;
+                const cumple = Object.values(respuestas).filter(r => r.estado === 'cumple').length;
+                const parcial = Object.values(respuestas).filter(r => r.estado === 'parcial').length;
+                const noCumple = Object.values(respuestas).filter(r => r.estado === 'no_cumple').length;
+                const noAplica = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
+               
+                let porcCumple = Math.round((cumple / totalPreguntas) * 100);
+                let porcParcial = Math.round((parcial / totalPreguntas) * 100);
+                let porcNoCumple = Math.round((noCumple / totalPreguntas) * 100);
+                let porcNoAplica = Math.round((noAplica / totalPreguntas) * 100);
+               
+                // Ajustar redondeo para que sume 100%
+                const total = porcCumple + porcParcial + porcNoCumple + porcNoAplica;
+                const diff = 100 - total;
+               
+                if (diff !== 0) {
+                    // Ajustar el porcentaje más grande
+                    const maxValue = Math.max(porcCumple, porcParcial, porcNoCumple, porcNoAplica);
+                    if (porcCumple === maxValue) {
+                        porcCumple += diff;
+                    } else if (porcParcial === maxValue) {
+                        porcParcial += diff;
+                    } else if (porcNoCumple === maxValue) {
+                        porcNoCumple += diff;
+                    } else {
+                        porcNoAplica += diff;
+                    }
+                }
+ 
+                // Determinar resultado general
+                let resultado = "Cumplimiento Total";
+                let color = "var(--success)";
+               
+                if (noCumple > 0 || parcial > 0) {
+                    resultado = "Cumplimiento Parcial";
+                    color = "var(--warning)";
+                }
+               
+                if (noCumple > totalPreguntas * 0.1) {
+                    resultado = "No Cumple";
+                    color = "var(--danger)";
+                }
+               
+                document.getElementById('reporte-cumple').textContent = porcCumple + '%';
+                document.getElementById('reporte-parcial').textContent = porcParcial + '%';
+                document.getElementById('reporte-no-cumple').textContent = porcNoCumple + '%';
+                document.getElementById('reporte-no-aplica').textContent = porcNoAplica + '%';
+                document.getElementById('reporte-resultado').textContent = resultado;
+                document.getElementById('reporte-resultado').style.color = color;
+               
+                const preguntasData = [];
+               
+                preguntasPorArea.forEach(pregunta => {
+                    const respuesta = respuestas[pregunta.id] || {};
+                    preguntasData.push({
+                        id: pregunta.id,
+                        texto: pregunta.texto,
+                        categoria: pregunta.categoria,
+                        estado: respuesta.estado || "no_respondida",
+                        evidenciaUrl: respuesta.evidenciaUrl || null,
+                        observaciones: respuesta.observaciones || ""
+                    });
+                });
+               
+                // Verificar conexión para envío
+                if (!navigator.onLine) {
+                    // Guardar en base de datos local como "pending"
+                    await saveAuditToLocalDB({
+                        auditorData: auditorData,
+                        respuestas: respuestas,
+                        preguntas: preguntasData,
+                        porcCumple: porcCumple,
+                        porcParcial: porcParcial,
+                        porcNoCumple: porcNoCumple,
+                        porcNoAplica: porcNoAplica
+                    }, "pending");
+                   
+                    alert('Auditoría guardada localmente. Se enviará automáticamente cuando se restablezca la conexión.');
+                    showPage('inicio');
+                    return;
+                }
+               
+                const payload = {
+                    action: "submitAudit",
+                    auditor: auditorData.nombre,
+                    unidad: auditorData.unidad,
+                    area: auditorData.area,
+                    fecha: auditorData.fecha,
+                    preguntas: preguntasData,
+                    porcCumple: porcCumple,
+                    porcParcial: porcParcial,
+                    porcNoCumple: porcNoCumple,
+                    porcNoAplica: porcNoAplica
+                };
+               
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+               
+                const data = await response.json();
+               
+                if (data.status === "success") {
+                    auditorData.auditId = data.auditId;
+                   
+                    if (data.pdfUrl) {
+                        document.getElementById('reporte-pdf-url').value = data.pdfUrl;
+                        mostrarPDF(data.pdfUrl);
+                    }
+                   
+                    generarDetalleReporte();
+                   
+                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                    document.querySelector('.nav-link[data-page="reportes"]').classList.add('active');
+                    showPage('reportes');
+                   
+                    cargarReportes();
+                } else {
+                    throw new Error(data.message || "Error en el servidor");
+                }
+            } catch (error) {
+                alert('Error al enviar la auditoría: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
+            }
+        }
+       
+        // Guardar progreso de auditoría
+        async function guardarProgreso() {
+            if (!auditorData) {
+                alert('Primero selecciona una unidad y área para auditar');
+                return;
+            }
+           
+            try {
+                const auditId = await saveAuditToLocalDB({
+                    auditorData: auditorData,
+                    respuestas: respuestas,
+                    preguntasPorArea: preguntasPorArea
+                }, "draft");
+               
+                alert(`Progreso guardado (ID: ${auditId}). Puedes continuar más tarde.`);
+                showPage('guardadas');
+               
+            } catch (error) {
+                alert('Error al guardar: ' + error.message);
+            }
+        }
+       
+        // Cargar auditorías guardadas
+        async function cargarAuditoriasGuardadas() {
+            const container = document.getElementById('auditorias-guardadas-container');
+            container.innerHTML = '';
+           
+            try {
+                const savedAudits = await getSavedAudits();
+               
+                if (savedAudits.length === 0) {
+                    container.innerHTML = '<p>No hay auditorías guardadas</p>';
+                    return;
+                }
+               
+                savedAudits.forEach(audit => {
+                    const auditElement = document.createElement('div');
+                    auditElement.className = 'auditoria-guardada';
+                    auditElement.innerHTML = `
+                        <h3>${formatName(audit.auditorData.area)}</h3>
+                        <p><strong>Unidad:</strong> ${formatName(audit.auditorData.unidad)}</p>
+                        <p><strong>Fecha:</strong> ${audit.auditorData.fecha}</p>
+                        <p><strong>Progreso:</strong> ${Object.keys(audit.respuestas).length} / ${audit.preguntasPorArea.length} preguntas</p>
+                        <div class="button-group">
+                            <button class="btn btn-primary continuar-auditoria" data-id="${audit.id}">
+                                <i class="fas fa-edit"></i> Continuar
+                            </button>
+                            <button class="btn btn-danger eliminar-auditoria" data-id="${audit.id}">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </div>
+                    `;
+                   
+                    container.appendChild(auditElement);
+                });
+               
+                // Event listeners para los botones
+                document.querySelectorAll('.continuar-auditoria').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const auditId = this.getAttribute('data-id');
+                        await cargarAuditoriaGuardada(auditId);
+                    });
+                });
+               
+                document.querySelectorAll('.eliminar-auditoria').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const auditId = this.getAttribute('data-id');
+                        await deleteSavedAudit(auditId);
+                        cargarAuditoriasGuardadas();
+                    });
+                });
+               
+            } catch (error) {
+                container.innerHTML = `<div class="alert alert-error">Error al cargar: ${error.message}</div>`;
+            }
+        }
+       
+        // Cargar una auditoría guardada
+        async function cargarAuditoriaGuardada(auditId) {
+            try {
+                const transaction = db.transaction([STORE_AUDITS], "readonly");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const request = store.get(Number(auditId));
+               
+                request.onsuccess = (event) => {
+                    const audit = event.target.result;
+                    if (!audit) throw new Error("Auditoría no encontrada");
+                   
                     // Cargar datos en las variables globales
-                    auditorData = draft.auditorData;
-                    respuestas = draft.respuestas;
-                    preguntasPorArea = draft.preguntasPorArea;
-                    currentDraftId = draftId;
-                    
+                    auditorData = audit.auditorData;
+                    respuestas = audit.respuestas;
+                    preguntasPorArea = audit.preguntasPorArea;
+                   
                     // Actualizar UI
                     document.getElementById('current-auditor').textContent = auditorData.nombre;
                     document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
                     document.getElementById('current-area').textContent = formatName(auditorData.area);
                     document.getElementById('current-date').textContent = auditorData.fecha;
-                    
-                    document.getElementById('nombre-auditor').value = auditorData.nombre;
-                    document.getElementById('unidad-negocio').value = auditorData.unidad;
-                    document.getElementById('area-auditada').value = auditorData.area;
-                    document.getElementById('fecha-auditoria').value = auditorData.fecha;
-                    
+                   
                     // Generar preguntas con respuestas cargadas
                     generarPreguntas();
-                    
+                   
                     // Mostrar sección de auditoría
                     showPage('auditoria');
-                    
-                    alert('Borrador cargado correctamente. Puedes continuar donde lo dejaste.');
-                } else {
-                    throw new Error(data.message);
-                }
+                };
+               
             } catch (error) {
-                alert('Error al cargar borrador: ' + error.message);
+                alert('Error al cargar auditoría: ' + error.message);
             }
-        }
-
-        // Función para eliminar un borrador
-        async function eliminarBorrador(draftId) {
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "deleteDraft",
-                        draftId: draftId,
-                        userEmail: currentUser.email
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.status === "success") {
-                    alert('Borrador eliminado correctamente');
-                } else {
-                    throw new Error(data.message);
-                }
-            } catch (error) {
-                alert('Error al eliminar borrador: ' + error.message);
-            }
-        }
-
-        // Función para guardar progreso
-        async function guardarProgreso(showAlert = true) {
-            if (!auditorData || !currentUser) {
-                if (showAlert) alert('Primero selecciona una unidad y área para auditar');
-                return;
-            }
-            
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "saveDraft",
-                        userEmail: currentUser.email,
-                        unidad: auditorData.unidad,
-                        area: auditorData.area,
-                        fecha: auditorData.fecha,
-                        auditorData: auditorData,
-                        respuestas: respuestas,
-                        preguntasPorArea: preguntasPorArea
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.status === "success") {
-                    currentDraftId = data.draftId;
-                    lastSaveTime = new Date();
-                    
-                    // Actualizar UI
-                    document.getElementById('save-indicator').className = 'sync-status sync-online';
-                    document.getElementById('last-saved').textContent = 'Guardado: ' + lastSaveTime.toLocaleTimeString();
-                    
-                    if (showAlert) {
-                        alert(`Progreso guardado (ID: ${data.draftId}). Puedes continuar más tarde.`);
-                    }
-                } else {
-                    throw new Error(data.message);
-                }
-            } catch (error) {
-                document.getElementById('save-indicator').className = 'sync-status sync-offline';
-                
-                if (showAlert) {
-                    alert('Error al guardar: ' + error.message);
-                }
-            }
-        }
-
-        // Función para generar preguntas agrupadas por categoría
-        function generarPreguntas() {
-            const container = document.getElementById('preguntas-container');
-            container.innerHTML = '';
-            
-            // Agrupar preguntas por categoría
-            const preguntasPorCategoria = {};
-            preguntasPorArea.forEach(pregunta => {
-                if (!preguntasPorCategoria[pregunta.categoria]) {
-                    preguntasPorCategoria[pregunta.categoria] = [];
-                }
-                preguntasPorCategoria[pregunta.categoria].push(pregunta);
-            });
-            
-            // Crear contenedores para cada categoría
-            for (const categoria in preguntasPorCategoria) {
-                const preguntasCategoria = preguntasPorCategoria[categoria];
-                
-                // Calcular progreso de la categoría
-                const totalPreguntas = preguntasCategoria.length;
-                const preguntasRespondidas = preguntasCategoria.filter(p => 
-                    respuestas[p.id] && respuestas[p.id].estado).length;
-                const porcentajeCompletado = Math.round((preguntasRespondidas / totalPreguntas) * 100);
-                
-                const categoriaElement = document.createElement('div');
-                categoriaElement.className = 'categoria-container';
-                categoriaElement.innerHTML = `
-                    <div class="categoria-header" onclick="toggleCategoria(this)">
-                        <h3>${categoria.toUpperCase()}</h3>
-                        <div>
-                            <span>${preguntasRespondidas}/${totalPreguntas} preguntas</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="progress-indicator">
-                            <div class="progress-bar-mini">
-                                <div class="progress-fill" style="width: ${porcentajeCompletado}%"></div>
-                            </div>
-                            <span>${porcentajeCompletado}% completado</span>
-                        </div>
-                    </div>
-                    <div class="categoria-content">
-                        <!-- Las preguntas se agregarán aquí -->
-                    </div>
-                `;
-                
-                const contentElement = categoriaElement.querySelector('.categoria-content');
-                
-                // Agregar preguntas de esta categoría
-                preguntasCategoria.forEach((pregunta, index) => {
-                    const preguntaElement = document.createElement('div');
-                    preguntaElement.className = 'pregunta-card';
-                    preguntaElement.innerHTML = `
-                        <div class="pregunta-header">
-                            <div class="pregunta-text">${pregunta.id}. ${pregunta.texto}</div>
-                        </div>
-                        <div class="opciones">
-                            <div class="opcion" data-value="cumple" data-pregunta="${pregunta.id}">
-                                <input type="radio" name="pregunta-${pregunta.id}" value="cumple" id="p${pregunta.id}-cumple">
-                                <label for="p${pregunta.id}-cumple">Cumple</label>
-                            </div>
-                            <div class="opcion" data-value="parcial" data-pregunta="${pregunta.id}">
-                                <input type="radio" name="pregunta-${pregunta.id}" value="parcial" id="p${pregunta.id}-parcial">
-                                <label for="p${pregunta.id}-parcial">Cumple Parcial</label>
-                            </div>
-                            <div class="opcion" data-value="no_cumple" data-pregunta="${pregunta.id}">
-                                <input type="radio" name="pregunta-${pregunta.id}" value="no_cumple" id="p${pregunta.id}-no_cumple">
-                                <label for="p${pregunta.id}-no_cumple">No Cumple</label>
-                            </div>
-                            <div class="opcion" data-value="no_aplica" data-pregunta="${pregunta.id}">
-                                <input type="radio" name="pregunta-${pregunta.id}" value="no_aplica" id="p${pregunta.id}-no_aplica">
-                                <label for="p${pregunta.id}-no_aplica">No Aplica</label>
-                            </div>
-                        </div>
-                        <div class="evidencia-section" id="evidencia-${pregunta.id}">
-                            <p><strong>Evidencia fotográfica requerida:</strong></p>
-                            <div class="camera-preview" id="camera-preview-${pregunta.id}">
-                                <i class="fas fa-camera"></i>
-                                <span>Haz clic para tomar foto</span>
-                            </div>
-                            <input type="file" accept="image/*" capture="environment" style="display: none;" id="camera-input-${pregunta.id}">
-                        </div>
-                        <div class="observaciones-section">
-                            <label for="observaciones-${pregunta.id}">Observaciones:</label>
-                            <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa observaciones relevantes"></textarea>
-                        </div>
-                    `;
-                    
-                    contentElement.appendChild(preguntaElement);
-                    
-                    // Configurar eventos para esta pregunta
-                    configurarEventosPregunta(pregunta.id);
-                    
-                    // Cargar respuesta guardada si existe
-                    if (respuestas[pregunta.id]) {
-                        cargarRespuestaGuardada(pregunta.id);
-                    }
-                });
-                
-                container.appendChild(categoriaElement);
-                
-                // Expandir la primera categoría por defecto
-                if (Object.keys(preguntasPorCategoria)[0] === categoria) {
-                    toggleCategoria(categoriaElement.querySelector('.categoria-header'));
-                }
-            }
-        }
-
-        // Función para toggle de categorías
-        function toggleCategoria(header) {
-            const content = header.nextElementSibling;
-            const icon = header.querySelector('i');
-            
-            if (content.classList.contains('expanded')) {
-                content.classList.remove('expanded');
-                icon.classList.remove('fa-chevron-up');
-                icon.classList.add('fa-chevron-down');
-            } else {
-                content.classList.add('expanded');
-                icon.classList.remove('fa-chevron-down');
-                icon.classList.add('fa-chevron-up');
-            }
-        }
-
-        // Función para configurar eventos de una pregunta
-        function configurarEventosPregunta(preguntaId) {
-            const opciones = document.querySelectorAll(`.opcion[data-pregunta="${preguntaId}"]`);
-            opciones.forEach(opcion => {
-                opcion.addEventListener('click', function() {
-                    const value = this.getAttribute('data-value');
-                   
-                    if (!respuestas[preguntaId]) respuestas[preguntaId] = {};
-                    respuestas[preguntaId].estado = value;
-                   
-                    const evidenciaSection = document.getElementById(`evidencia-${preguntaId}`);
-                    if (value === 'parcial' || value === 'no_cumple') {
-                        evidenciaSection.style.display = 'block';
-                    } else {
-                        evidenciaSection.style.display = 'none';
-                        // Limpiar evidencia si no es necesaria
-                        if (respuestas[preguntaId].evidenciaUrl) {
-                            delete respuestas[preguntaId].evidenciaUrl;
-                            document.getElementById(`camera-preview-${preguntaId}`).innerHTML = `
-                                <i class="fas fa-camera"></i>
-                                <span>Haz clic para tomar foto</span>
-                            `;
-                        }
-                    }
-                   
-                    opciones.forEach(o => o.classList.remove('selected'));
-                    this.classList.add('selected');
-                    
-                    // Guardar automáticamente
-                    guardarProgreso(false);
-                    
-                    // Actualizar progreso de la categoría
-                    actualizarProgresoCategoria(preguntaId);
-                });
-            });
-            
-            const cameraPreview = document.getElementById(`camera-preview-${preguntaId}`);
-            const cameraInput = document.getElementById(`camera-input-${preguntaId}`);
-           
-            cameraPreview.addEventListener('click', function() {
-                cameraInput.click();
-            });
-           
-            cameraInput.addEventListener('change', async function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    const file = e.target.files[0];
-                    const reader = new FileReader();
-                   
-                    reader.onload = async function(event) {
-                        // Comprimir imagen antes de subir
-                        const compressedImg = await compressImage(file);
-                       
-                        cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
-                       
-                        // Verificar conexión para subir
-                        if (!navigator.onLine) {
-                            // Guardar evidencia localmente
-                            respuestas[preguntaId].evidenciaUrl = compressedImg;
-                            alert('Evidencia guardada localmente. Se subirá con conexión.');
-                            guardarProgreso(false);
-                            return;
-                        }
-                       
-                        try {
-                            const response = await fetch(SCRIPT_URL, {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    action: "uploadImage",
-                                    image: compressedImg.split(',')[1], // Solo la parte base64
-                                    userEmail: currentUser.email
-                                })
-                            });
-                           
-                            const data = await response.json();
-                           
-                            if (data.status === "success") {
-                                if (!respuestas[preguntaId]) respuestas[preguntaId] = {};
-                                respuestas[preguntaId].evidenciaUrl = data.url;
-                                guardarProgreso(false);
-                            } else {
-                                throw new Error(data.message || "Error al subir imagen");
-                            }
-                        } catch (error) {
-                            alert('Error al subir evidencia: ' + error.message);
-                            cameraPreview.innerHTML = `
-                                <i class="fas fa-exclamation-triangle"></i>
-                                <span>Error: ${error.message}</span>
-                            `;
-                        }
-                    };
-                   
-                    reader.readAsDataURL(file);
-                }
-            });
-           
-            document.getElementById(`observaciones-${preguntaId}`).addEventListener('input', function(e) {
-                if (!respuestas[preguntaId]) respuestas[preguntaId] = {};
-                respuestas[preguntaId].observaciones = e.target.value;
-                guardarProgreso(false);
-            });
-        }
-
-        // Función para cargar respuesta guardada
-        function cargarRespuestaGuardada(preguntaId) {
-            const respuesta = respuestas[preguntaId];
-           
-            // Seleccionar opción
-            if (respuesta.estado) {
-                const opcion = document.querySelector(`.opcion[data-value="${respuesta.estado}"][data-pregunta="${preguntaId}"]`);
-                if (opcion) {
-                    opcion.click();
-                   
-                    // Cargar evidencia si existe
-                    if (respuesta.evidenciaUrl) {
-                        document.getElementById(`camera-preview-${preguntaId}`).innerHTML = `<img src="${respuesta.evidenciaUrl}" alt="Evidencia fotográfica">`;
-                    }
-                }
-            }
-           
-            // Cargar observaciones
-            if (respuesta.observaciones) {
-                document.getElementById(`observaciones-${preguntaId}`).value = respuesta.observaciones;
-            }
-        }
-
-        // Función para actualizar progreso de categoría
-        function actualizarProgresoCategoria(preguntaId) {
-            // Encontrar la categoría a la que pertenece la pregunta
-            const pregunta = preguntasPorArea.find(p => p.id === preguntaId);
-            if (!pregunta) return;
-            
-            const categoriaHeader = document.querySelector(`.categoria-header:has(+ .categoria-content .pregunta-card:has([data-pregunta="${preguntaId}"]))`);
-            if (!categoriaHeader) return;
-            
-            const categoria = pregunta.categoria;
-            const preguntasCategoria = preguntasPorArea.filter(p => p.categoria === categoria);
-            
-            // Calcular nuevo progreso
-            const totalPreguntas = preguntasCategoria.length;
-            const preguntasRespondidas = preguntasCategoria.filter(p => 
-                respuestas[p.id] && respuestas[p.id].estado).length;
-            const porcentajeCompletado = Math.round((preguntasRespondidas / totalPreguntas) * 100);
-            
-            // Actualizar UI
-            const progressBar = categoriaHeader.querySelector('.progress-fill');
-            const progressText = categoriaHeader.querySelector('.progress-indicator span:last-child');
-            
-            if (progressBar) progressBar.style.width = porcentajeCompletado + '%';
-            if (progressText) progressText.textContent = porcentajeCompletado + '% completado';
-            
-            // Actualizar contador de preguntas respondidas
-            const countElement = categoriaHeader.querySelector('div > span');
-            if (countElement) countElement.textContent = `${preguntasRespondidas}/${totalPreguntas} preguntas`;
         }
        
         // Login
