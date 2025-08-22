@@ -943,7 +943,7 @@
             left: 0;
             width: 100%;
             height: 3px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            background: linear-gradient(90deg, var(--primary), var(--secondary);
             border-radius: 3px;
             transform: scaleX(0);
             transform-origin: right;
@@ -1092,6 +1092,65 @@
         #sync-container.syncing {
             background: rgba(255, 215, 0, 0.2);
         }
+        
+        /* Estilos para acordeones de categorías */
+        .categoria-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .categoria-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        
+        .categoria-content {
+            display: none;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 15px;
+        }
+        
+        .categoria-content.active {
+            display: block;
+        }
+        
+        /* Estilos para indicador de progreso */
+        .progreso-indicador {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .progreso-texto {
+            margin-left: 10px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .progreso-barra {
+            flex-grow: 1;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progreso-relleno {
+            height: 100%;
+            background: var(--success);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
@@ -1216,6 +1275,14 @@
                             <option value="dulcinea_chiapas">Dulcinea - Chiapas</option>
                             <option value="dulcinea_michoacan">Dulcinea Michoacán</option>
                             <option value="cafetalera_cordoba">Cafetalera - Cordoba</option>
+                            <!-- Nuevas unidades -->
+                            <option value="almacen_tamarindos">Almacén Tamarindos</option>
+                            <option value="almacen_5feb">Almacén 5 de Febrero</option>
+                            <option value="almacen_cafetalera">Almacén Cafetalera</option>
+                            <option value="almacen_argo">Almacén Argo</option>
+                            <option value="almacen_tinaja">Almacén Tinaja</option>
+                            <option value="almacen_fortin">Almacén Fortin</option>
+                            <option value="almacen_sansebastian">Almacén San Sebastián</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1260,6 +1327,14 @@
                         <p><strong>Fecha:</strong> <span id="current-date">-</span></p>
                     </div>
                    
+                    <!-- Indicador de progreso -->
+                    <div class="progreso-indicador">
+                        <div class="progreso-barra">
+                            <div class="progreso-relleno" id="progreso-barra" style="width: 0%"></div>
+                        </div>
+                        <div class="progreso-texto" id="progreso-texto">0% completado</div>
+                    </div>
+                   
                     <!-- Preguntas de auditoría -->
                     <div id="preguntas-container">
                         <!-- Las preguntas se generarán dinámicamente con JavaScript -->
@@ -1298,6 +1373,14 @@
                                 <option value="dulcinea_chiapas">Dulcinea - Chiapas</option>
                                 <option value="dulcinea_michoacan">Dulcinea Michoacán</option>
                                 <option value="cafetalera_cordoba">Cafetalera - Cordoba</option>
+                                <!-- Nuevas unidades -->
+                                <option value="almacen_tamarindos">Almacén Tamarindos</option>
+                                <option value="almacen_5feb">Almacén 5 de Febrero</option>
+                                <option value="almacen_cafetalera">Almacén Cafetalera</option>
+                                <option value="almacen_argo">Almacén Argo</option>
+                                <option value="almacen_tinaja">Almacén Tinaja</option>
+                                <option value="almacen_fortin">Almacén Fortin</option>
+                                <option value="almacen_sansebastian">Almacén San Sebastián</option>
                             </select>
                         </div>
                        
@@ -1588,6 +1671,14 @@
                             <option value="dulcinea_chiapas">Dulcinea - Chiapas</option>
                             <option value="dulcinea_michoacan">Dulcinea Michoacán</option>
                             <option value="cafetalera_cordoba">Cafetalera - Cordoba</option>
+                            <!-- Nuevas unidades -->
+                            <option value="almacen_tamarindos">Almacén Tamarindos</option>
+                            <option value="almacen_5feb">Almacén 5 de Febrero</option>
+                            <option value="almacen_cafetalera">Almacén Cafetalera</option>
+                            <option value="almacen_argo">Almacén Argo</option>
+                            <option value="almacen_tinaja">Almacén Tinaja</option>
+                            <option value="almacen_fortin">Almacén Fortin</option>
+                            <option value="almacen_sansebastian">Almacén San Sebastián</option>
                         </select>
                     </div>
                    
@@ -1686,6 +1777,7 @@
         let areasCache = {};
         let allAreas = [];
         let auditores = [];
+        let progressId = null;
        
         // Base de datos local (IndexedDB)
         let db;
@@ -1839,6 +1931,9 @@
                     }
                 });
             });
+            
+            // Cargar progreso guardado si existe
+            cargarProgresoGuardado();
         });
        
         // Inicializar IndexedDB
@@ -1891,7 +1986,7 @@
        
         // Obtener auditorías guardadas
         async function getSavedAudits() {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) {
                 const transaction = db.transaction([STORE_AUDITS], "readonly");
                 const store = transaction.objectStore(STORE_AUDITS);
                 const index = store.index("status");
@@ -1904,7 +1999,7 @@
        
         // Obtener auditorías pendientes
         async function getPendingAudits() {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) {
                 const transaction = db.transaction([STORE_AUDITS], "readonly");
                 const store = transaction.objectStore(STORE_AUDITS);
                 const index = store.index("status");
@@ -1917,7 +2012,7 @@
        
         // Eliminar auditoría guardada
         async function deleteSavedAudit(auditId) {
-            return new Promise((resolve, reject) => {
+            return new Promise((resolve, reject) {
                 const transaction = db.transaction([STORE_AUDITS], "readwrite");
                 const store = transaction.objectStore(STORE_AUDITS);
                 const request = store.delete(Number(auditId));
@@ -1944,7 +2039,7 @@
         // Sincronizar datos offline
         async function syncOfflineData() {
             if (!navigator.onLine) {
-                alert("No hay conexión a internet. Conéctate para sincronizar.");
+                alert("No hay conexión a internet. Conéctarte para sincronizar.");
                 return;
             }
            
@@ -2179,45 +2274,56 @@
             try {
                 const preguntasContestadas = Object.keys(respuestas).length;
                 if (preguntasContestadas < preguntasPorArea.length) {
-                    alert('Por favor responde todas las preguntas antes de finalizar la auditoría.');
-                    return;
-                }
-               
-                for (const pregunta of preguntasPorArea) {
-                    const respuesta = respuestas[pregunta.id] || {};
-                    if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && !respuesta.evidenciaUrl) {
-                        alert(`Por favor, adjunta evidencia fotográfica para la pregunta ${pregunta.id}`);
+                    if (!confirm('No has respondido todas las preguntas. ¿Deseas finalizar la auditoría de todas formas?')) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
                         return;
                     }
                 }
                
-                // CÁLCULO CORREGIDO DE PORCENTAJES
-                const totalPreguntas = preguntasPorArea.length;
-                const cumple = Object.values(respuestas).filter(r => r.estado === 'cumple').length;
-                const parcial = Object.values(respuestas).filter(r => r.estado === 'parcial').length;
-                const noCumple = Object.values(respuestas).filter(r => r.estado === 'no_cumple').length;
-                const noAplica = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
+                // CÁLCULO MEJORADO: Excluir "No aplica" del cálculo de porcentajes
+                const preguntasAplicables = preguntasPorArea.filter(p => {
+                    const respuesta = respuestas[p.id] || {};
+                    return respuesta.estado !== 'no_aplica';
+                });
+                
+                const totalConsideradas = preguntasAplicables.length;
+                const cumple = preguntasAplicables.filter(p => {
+                    const respuesta = respuestas[p.id] || {};
+                    return respuesta.estado === 'cumple';
+                }).length;
+                
+                const parcial = preguntasAplicables.filter(p => {
+                    const respuesta = respuestas[p.id] || {};
+                    return respuesta.estado === 'parcial';
+                }).length;
+                
+                const noCumple = preguntasAplicables.filter(p => {
+                    const respuesta = respuestas[p.id] || {};
+                    return respuesta.estado === 'no_cumple';
+                }).length;
+                
+                const noAplica = preguntasPorArea.length - totalConsideradas;
                
-                let porcCumple = Math.round((cumple / totalPreguntas) * 100);
-                let porcParcial = Math.round((parcial / totalPreguntas) * 100);
-                let porcNoCumple = Math.round((noCumple / totalPreguntas) * 100);
-                let porcNoAplica = Math.round((noAplica / totalPreguntas) * 100);
+                // Calcular porcentajes basados solo en preguntas aplicables
+                let porcCumple = totalConsideradas > 0 ? Math.round((cumple / totalConsideradas) * 100) : 0;
+                let porcParcial = totalConsideradas > 0 ? Math.round((parcial / totalConsideradas) * 100) : 0;
+                let porcNoCumple = totalConsideradas > 0 ? Math.round((noCumple / totalConsideradas) * 100) : 0;
+                let porcNoAplica = Math.round((noAplica / preguntasPorArea.length) * 100);
                
                 // Ajustar redondeo para que sume 100%
-                const total = porcCumple + porcParcial + porcNoCumple + porcNoAplica;
+                const total = porcCumple + porcParcial + porcNoCumple;
                 const diff = 100 - total;
                
-                if (diff !== 0) {
+                if (diff !== 0 && totalConsideradas > 0) {
                     // Ajustar el porcentaje más grande
-                    const maxValue = Math.max(porcCumple, porcParcial, porcNoCumple, porcNoAplica);
+                    const maxValue = Math.max(porcCumple, porcParcial, porcNoCumple);
                     if (porcCumple === maxValue) {
                         porcCumple += diff;
                     } else if (porcParcial === maxValue) {
                         porcParcial += diff;
                     } else if (porcNoCumple === maxValue) {
                         porcNoCumple += diff;
-                    } else {
-                        porcNoAplica += diff;
                     }
                 }
  
@@ -2230,7 +2336,7 @@
                     color = "var(--warning)";
                 }
                
-                if (noCumple > totalPreguntas * 0.1) {
+                if (noCumple > totalConsideradas * 0.1) { // Más del 10% de no cumplimiento
                     resultado = "No Cumple";
                     color = "var(--danger)";
                 }
@@ -2309,6 +2415,11 @@
                     showPage('reportes');
                    
                     cargarReportes();
+                    
+                    // Eliminar progreso guardado si existe
+                    if (progressId) {
+                        await eliminarProgreso();
+                    }
                 } else {
                     throw new Error(data.message || "Error en el servidor");
                 }
@@ -2328,17 +2439,180 @@
             }
            
             try {
-                const auditId = await saveAuditToLocalDB({
-                    auditorData: auditorData,
-                    respuestas: respuestas,
-                    preguntasPorArea: preguntasPorArea
-                }, "draft");
+                // Verificar si hay preguntas sin evidencia cuando es requerida
+                let advertencia = false;
+                let mensajeAdvertencia = "Las siguientes preguntas requieren evidencia pero no se ha adjuntado:\n";
+                
+                for (const pregunta of preguntasPorArea) {
+                    const respuesta = respuestas[pregunta.id] || {};
+                    if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && !respuesta.evidenciaUrl) {
+                        advertencia = true;
+                        mensajeAdvertencia += `- Pregunta ${pregunta.id}\n`;
+                    }
+                }
+                
+                if (advertencia) {
+                    if (!confirm(mensajeAdvertencia + "\n¿Deseas guardar de todas formas?")) {
+                        return;
+                    }
+                }
+                
+                const preguntasData = [];
                
-                alert(`Progreso guardado (ID: ${auditId}). Puedes continuar más tarde.`);
-                showPage('guardadas');
+                preguntasPorArea.forEach(pregunta => {
+                    const respuesta = respuestas[pregunta.id] || {};
+                    preguntasData.push({
+                        id: pregunta.id,
+                        texto: pregunta.texto,
+                        categoria: pregunta.categoria,
+                        estado: respuesta.estado || "no_respondida",
+                        evidenciaUrl: respuesta.evidenciaUrl || null,
+                        observaciones: respuesta.observaciones || ""
+                    });
+                });
+                
+                // Calcular porcentajes (similar a finalizarAuditoria pero solo para mostrar)
+                const preguntasAplicables = preguntasPorArea.filter(p => {
+                    const respuesta = respuestas[p.id] || {};
+                    return respuesta.estado !== 'no_aplica';
+                });
+                
+                const totalConsideradas = preguntasAplicables.length;
+                const cumple = preguntasAplicables.filter(p => {
+                    const respuesta = respuestas[p.id] || {};
+                    return respuesta.estado === 'cumple';
+                }).length;
+                
+                const parcial = preguntasAplicables.filter(p => {
+                    const respuesta = respuestas[p.id] || {};
+                    return respuesta.estado === 'parcial';
+                }).length;
+                
+                const noCumple = preguntasAplicables.filter(p => {
+                    const respuesta = respuestas[p.id] || {};
+                    return respuesta.estado === 'no_cumple';
+                }).length;
+                
+                const noAplica = preguntasPorArea.length - totalConsideradas;
+                
+                let porcCumple = totalConsideradas > 0 ? Math.round((cumple / totalConsideradas) * 100) : 0;
+                let porcParcial = totalConsideradas > 0 ? Math.round((parcial / totalConsideradas) * 100) : 0;
+                let porcNoCumple = totalConsideradas > 0 ? Math.round((noCumple / totalConsideradas) * 100) : 0;
+                let porcNoAplica = Math.round((noAplica / preguntasPorArea.length) * 100);
+               
+                const payload = {
+                    action: "saveProgress",
+                    auditor: auditorData.nombre,
+                    unidad: auditorData.unidad,
+                    area: auditorData.area,
+                    fecha: auditorData.fecha,
+                    preguntas: preguntasData,
+                    respuestas: respuestas,
+                    porcCumple: porcCumple,
+                    porcParcial: porcParcial,
+                    porcNoCumple: porcNoCumple,
+                    porcNoAplica: porcNoAplica
+                };
+                
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    progressId = data.progressId;
+                    alert(`Progreso guardado correctamente (ID: ${data.progressId}). Puedes continuar más tarde.`);
+                } else {
+                    throw new Error(data.message || "Error al guardar progreso");
+                }
                
             } catch (error) {
                 alert('Error al guardar: ' + error.message);
+            }
+        }
+        
+        // Cargar progreso guardado
+        async function cargarProgresoGuardado() {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "loadProgress",
+                        auditor: currentUser.name
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success" && data.progress.length > 0) {
+                    if (confirm('Tienes una auditoría en progreso. ¿Deseas continuar?')) {
+                        const progreso = data.progress[0]; // Cargar el más reciente
+                        progressId = progreso.id;
+                        
+                        auditorData = {
+                            nombre: currentUser.name,
+                            unidad: progreso.unidad,
+                            area: progreso.area,
+                            fecha: progreso.fecha
+                        };
+                        
+                        respuestas = progreso.respuestas;
+                        preguntasPorArea = progreso.preguntas;
+                        
+                        // Actualizar UI
+                        document.getElementById('nombre-auditor').value = currentUser.name;
+                        document.getElementById('unidad-negocio').value = progreso.unidad;
+                        document.getElementById('fecha-auditoria').value = progreso.fecha;
+                        
+                        // Cargar áreas para la unidad seleccionada
+                        await cargarAreasPorUnidad();
+                        
+                        // Esperar un momento para que se cargue el select de áreas
+                        setTimeout(() => {
+                            document.getElementById('area-auditada').value = progreso.area;
+                            
+                            document.getElementById('current-auditor').textContent = currentUser.name;
+                            document.getElementById('current-unidad').textContent = document.querySelector(`#unidad-negocio option[value="${progreso.unidad}"]`).textContent;
+                            document.getElementById('current-area').textContent = document.querySelector(`#area-auditada option[value="${progreso.area}"]`).textContent;
+                            document.getElementById('current-date').textContent = progreso.fecha;
+                            
+                            generarPreguntas();
+                            actualizarProgreso();
+                            
+                            showPage('auditoria');
+                        }, 500);
+                    }
+                }
+            } catch (error) {
+                console.error("Error cargando progreso:", error);
+            }
+        }
+        
+        // Eliminar progreso guardado
+        async function eliminarProgreso() {
+            if (!progressId) return;
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "deleteProgress",
+                        progressId: progressId,
+                        auditor: currentUser.name
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === "success") {
+                    progressId = null;
+                }
+            } catch (error) {
+                console.error("Error eliminando progreso:", error);
             }
         }
        
@@ -2431,16 +2705,21 @@
             }
         }
        
-        // Login
+        // Login (MEJORADO)
         async function login() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             const messageContainer = document.getElementById('login-message');
+            const btn = document.getElementById('btn-login');
+            const originalText = btn.innerHTML;
            
             if (!email || !password) {
                 showMessage('Por favor completa todos los campos', 'error');
                 return;
             }
+           
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando sesión...';
            
             try {
                 const response = await fetch(SCRIPT_URL, {
@@ -2462,11 +2741,17 @@
                     document.getElementById('login').classList.remove('active');
                     document.getElementById('main-app').style.display = 'block';
                     showPage('inicio');
+                    
+                    // Cargar progreso guardado si existe
+                    await cargarProgresoGuardado();
                 } else {
                     showMessage(data.message || "Credenciales incorrectas", 'error');
                 }
             } catch (error) {
                 showMessage('Error de conexión: ' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
        
@@ -2611,167 +2896,227 @@
             document.getElementById('reporte-area').textContent = document.querySelector(`#area-auditada option[value="${area}"]`).textContent;
             document.getElementById('reporte-fecha').textContent = fecha;
            
+            // Reiniciar respuestas
+            respuestas = {};
+            
             generarPreguntas();
+            actualizarProgreso();
            
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.querySelector('.nav-link[data-page="auditoria"]').classList.add('active');
             showPage('auditoria');
         }
+        
+        // Actualizar barra de progreso
+        function actualizarProgreso() {
+            const totalPreguntas = preguntasPorArea.length;
+            const preguntasRespondidas = Object.keys(respuestas).length;
+            const porcentaje = Math.round((preguntasRespondidas / totalPreguntas) * 100);
+            
+            document.getElementById('progreso-barra').style.width = `${porcentaje}%`;
+            document.getElementById('progreso-texto').textContent = `${porcentaje}% completado (${preguntasRespondidas}/${totalPreguntas} preguntas)`;
+        }
        
-        // Generar preguntas de auditoría
+        // Generar preguntas de auditoría (MEJORADO con agrupación por categoría)
         function generarPreguntas() {
             const container = document.getElementById('preguntas-container');
             container.innerHTML = '';
-           
-            preguntasPorArea.forEach((pregunta, index) => {
-                const preguntaElement = document.createElement('div');
-                preguntaElement.className = 'pregunta-card';
-                preguntaElement.innerHTML = `
-                    <div class="pregunta-header">
-                        <div class="pregunta-text">${pregunta.id}. ${pregunta.texto}</div>
-                        <div class="categoria-pregunta">${pregunta.categoria}</div>
+            
+            // Agrupar preguntas por categoría
+            const preguntasPorCategoria = {};
+            preguntasPorArea.forEach(pregunta => {
+                if (!preguntasPorCategoria[pregunta.categoria]) {
+                    preguntasPorCategoria[pregunta.categoria] = [];
+                }
+                preguntasPorCategoria[pregunta.categoria].push(pregunta);
+            });
+            
+            // Crear acordeones por categoría
+            for (const categoria in preguntasPorCategoria) {
+                const categoriaElement = document.createElement('div');
+                categoriaElement.className = 'categoria-card';
+                categoriaElement.innerHTML = `
+                    <div class="categoria-header" onclick="toggleCategoria(this)">
+                        <h3>${categoria}</h3>
+                        <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="opciones">
-                        <div class="opcion" data-value="cumple" data-pregunta="${pregunta.id}">
-                            <input type="radio" name="pregunta-${pregunta.id}" value="cumple" id="p${pregunta.id}-cumple">
-                            <label for="p${pregunta.id}-cumple">Cumple</label>
-                        </div>
-                        <div class="opcion" data-value="parcial" data-pregunta="${pregunta.id}">
-                            <input type="radio" name="pregunta-${pregunta.id}" value="parcial" id="p${pregunta.id}-parcial">
-                            <label for="p${pregunta.id}-parcial">Cumple Parcial</label>
-                        </div>
-                        <div class="opcion" data-value="no_cumple" data-pregunta="${pregunta.id}">
-                            <input type="radio" name="pregunta-${pregunta.id}" value="no_cumple" id="p${pregunta.id}-no_cumple">
-                            <label for="p${pregunta.id}-no_cumple">No Cumple</label>
-                        </div>
-                        <div class="opcion" data-value="no_aplica" data-pregunta="${pregunta.id}">
-                            <input type="radio" name="pregunta-${pregunta.id}" value="no_aplica" id="p${pregunta.id}-no_aplica">
-                            <label for="p${pregunta.id}-no_aplica">No Aplica</label>
-                        </div>
-                    </div>
-                    <div class="evidencia-section" id="evidencia-${pregunta.id}">
-                        <p><strong>Evidencia fotográfica requerida:</strong></p>
-                        <div class="camera-preview" id="camera-preview-${pregunta.id}">
-                            <i class="fas fa-camera"></i>
-                            <span>Haz clic para tomar foto</span>
-                        </div>
-                        <input type="file" accept="image/*" capture="environment" style="display: none;" id="camera-input-${pregunta.id}">
-                    </div>
-                    <div class="observaciones-section">
-                        <label for="observaciones-${pregunta.id}">Observaciones:</label>
-                        <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa observaciones relevantes"></textarea>
+                    <div class="categoria-content">
+                        <!-- Preguntas de esta categoría se insertarán aquí -->
                     </div>
                 `;
-                container.appendChild(preguntaElement);
-               
-                const opciones = preguntaElement.querySelectorAll('.opcion');
-                opciones.forEach(opcion => {
-                    opcion.addEventListener('click', function() {
-                        const value = this.getAttribute('data-value');
-                        const preguntaId = this.getAttribute('data-pregunta');
-                       
-                        if (!respuestas[preguntaId]) respuestas[preguntaId] = {};
-                        respuestas[preguntaId].estado = value;
-                       
-                        const evidenciaSection = document.getElementById(`evidencia-${preguntaId}`);
-                        if (value === 'parcial' || value === 'no_cumple') {
-                            evidenciaSection.style.display = 'block';
-                        } else {
-                            evidenciaSection.style.display = 'none';
-                        }
-                       
-                        opciones.forEach(o => o.classList.remove('selected'));
-                        this.classList.add('selected');
+                
+                const contentElement = categoriaElement.querySelector('.categoria-content');
+                
+                preguntasPorCategoria[categoria].forEach((pregunta, index) => {
+                    const preguntaElement = document.createElement('div');
+                    preguntaElement.className = 'pregunta-card';
+                    preguntaElement.innerHTML = `
+                        <div class="pregunta-header">
+                            <div class="pregunta-text">${pregunta.id}. ${pregunta.texto}</div>
+                            <div class="categoria-pregunta">${pregunta.categoria}</div>
+                        </div>
+                        <div class="opciones">
+                            <div class="opcion" data-value="cumple" data-pregunta="${pregunta.id}">
+                                <input type="radio" name="pregunta-${pregunta.id}" value="cumple" id="p${pregunta.id}-cumple">
+                                <label for="p${pregunta.id}-cumple">Cumple</label>
+                            </div>
+                            <div class="opcion" data-value="parcial" data-pregunta="${pregunta.id}">
+                                <input type="radio" name="pregunta-${pregunta.id}" value="parcial" id="p${pregunta.id}-parcial">
+                                <label for="p${pregunta.id}-parcial">Cumple Parcial</label>
+                            </div>
+                            <div class="opcion" data-value="no_cumple" data-pregunta="${pregunta.id}">
+                                <input type="radio" name="pregunta-${pregunta.id}" value="no_cumple" id="p${pregunta.id}-no_cumple">
+                                <label for="p${pregunta.id}-no_cumple">No Cumple</label>
+                            </div>
+                            <div class="opcion" data-value="no_aplica" data-pregunta="${pregunta.id}">
+                                <input type="radio" name="pregunta-${pregunta.id}" value="no_aplica" id="p${pregunta.id}-no_aplica">
+                                <label for="p${pregunta.id}-no_aplica">No Aplica</label>
+                            </div>
+                        </div>
+                        <div class="evidencia-section" id="evidencia-${pregunta.id}">
+                            <p><strong>Evidencia fotográfica requerida:</strong></p>
+                            <div class="camera-preview" id="camera-preview-${pregunta.id}">
+                                <i class="fas fa-camera"></i>
+                                <span>Haz clic para tomar foto</span>
+                            </div>
+                            <input type="file" accept="image/*" capture="environment" style="display: none;" id="camera-input-${pregunta.id}">
+                        </div>
+                        <div class="observaciones-section">
+                            <label for="observaciones-${pregunta.id}">Observaciones:</label>
+                            <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa observaciones relevantes"></textarea>
+                        </div>
+                    `;
+                    
+                    contentElement.appendChild(preguntaElement);
+                   
+                    const opciones = preguntaElement.querySelectorAll('.opcion');
+                    opciones.forEach(opcion => {
+                        opcion.addEventListener('click', function() {
+                            const value = this.getAttribute('data-value');
+                            const preguntaId = this.getAttribute('data-pregunta');
+                           
+                            if (!respuestas[preguntaId]) respuestas[preguntaId] = {};
+                            respuestas[preguntaId].estado = value;
+                           
+                            const evidenciaSection = document.getElementById(`evidencia-${preguntaId}`);
+                            if (value === 'parcial' || value === 'no_cumple') {
+                                evidenciaSection.style.display = 'block';
+                            } else {
+                                evidenciaSection.style.display = 'none';
+                            }
+                           
+                            opciones.forEach(o => o.classList.remove('selected'));
+                            this.classList.add('selected');
+                            
+                            // Actualizar progreso
+                            actualizarProgreso();
+                        });
                     });
-                });
-               
-                const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
-                const cameraInput = document.getElementById(`camera-input-${pregunta.id}`);
-               
-                cameraPreview.addEventListener('click', function() {
-                    cameraInput.click();
-                });
-               
-                // Capturamos el id de la pregunta en una variable local
-                const currentPreguntaId = pregunta.id;
-               
-                cameraInput.addEventListener('change', async function(e) {
-                    if (e.target.files && e.target.files[0]) {
-                        const file = e.target.files[0];
-                        const reader = new FileReader();
-                       
-                        reader.onload = async function(event) {
-                            // Comprimir imagen antes de subir
-                            const compressedImg = await compressImage(file);
-                           
-                            cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
-                           
-                            // Verificar conexión para subir
-                            if (!navigator.onLine) {
-                                // Guardar evidencia localmente
-                                respuestas[currentPreguntaId].evidenciaUrl = compressedImg;
-                                alert('Evidencia guardada localmente. Se subirá con conexión.');
-                                return;
-                            }
-                           
-                            try {
-                                const response = await fetch(SCRIPT_URL, {
-                                    method: 'POST',
-                                    body: JSON.stringify({
-                                        action: "uploadImage",
-                                        image: compressedImg.split(',')[1] // Solo la parte base64
-                                    })
-                                });
-                               
-                                const data = await response.json();
-                               
-                                if (data.status === "success") {
-                                    if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
-                                    respuestas[currentPreguntaId].evidenciaUrl = data.url;
-                                } else {
-                                    throw new Error(data.message || "Error al subir imagen");
-                                }
-                            } catch (error) {
-                                alert('Error al subir evidencia: ' + error.message);
-                                cameraPreview.innerHTML = `
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <span>Error: ${error.message}</span>
-                                `;
-                            }
-                        };
-                       
-                        reader.readAsDataURL(file);
-                    }
-                });
-               
-                document.getElementById(`observaciones-${pregunta.id}`).addEventListener('input', function(e) {
-                    if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
-                    respuestas[pregunta.id].observaciones = e.target.value;
-                });
-               
-                // Cargar respuesta guardada si existe
-                if (respuestas[pregunta.id]) {
-                    const respuesta = respuestas[pregunta.id];
                    
-                    // Seleccionar opción
-                    if (respuesta.estado) {
-                        const opcion = preguntaElement.querySelector(`.opcion[data-value="${respuesta.estado}"]`);
-                        if (opcion) {
-                            opcion.click();
+                    const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
+                    const cameraInput = document.getElementById(`camera-input-${pregunta.id}`);
+                   
+                    cameraPreview.addEventListener('click', function() {
+                        cameraInput.click();
+                    });
+                   
+                    // Capturamos el id de la pregunta en una variable local
+                    const currentPreguntaId = pregunta.id;
+                   
+                    cameraInput.addEventListener('change', async function(e) {
+                        if (e.target.files && e.target.files[0]) {
+                            const file = e.target.files[0];
+                            const reader = new FileReader();
                            
-                            // Cargar evidencia si existe
-                            if (respuesta.evidenciaUrl) {
-                                cameraPreview.innerHTML = `<img src="${respuesta.evidenciaUrl}" alt="Evidencia fotográfica">`;
+                            reader.onload = async function(event) {
+                                // Comprimir imagen antes de subir
+                                const compressedImg = await compressImage(file);
+                               
+                                cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
+                               
+                                // Verificar conexión para subir
+                                if (!navigator.onLine) {
+                                    // Guardar evidencia localmente
+                                    respuestas[currentPreguntaId].evidenciaUrl = compressedImg;
+                                    alert('Evidencia guardada localmente. Se subirá con conexión.');
+                                    return;
+                                }
+                               
+                                try {
+                                    const response = await fetch(SCRIPT_URL, {
+                                        method: 'POST',
+                                        body: JSON.stringify({
+                                            action: "uploadImage",
+                                            image: compressedImg.split(',')[1] // Solo la parte base64
+                                        })
+                                    });
+                                   
+                                    const data = await response.json();
+                                   
+                                    if (data.status === "success") {
+                                        if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
+                                        respuestas[currentPreguntaId].evidenciaUrl = data.url;
+                                    } else {
+                                        throw new Error(data.message || "Error al subir imagen");
+                                    }
+                                } catch (error) {
+                                    alert('Error al subir evidencia: ' + error.message);
+                                    cameraPreview.innerHTML = `
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>Error: ${error.message}</span>
+                                    `;
+                                }
+                            };
+                           
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                   
+                    document.getElementById(`observaciones-${pregunta.id}`).addEventListener('input', function(e) {
+                        if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
+                        respuestas[pregunta.id].observaciones = e.target.value;
+                    });
+                   
+                    // Cargar respuesta guardada si existe
+                    if (respuestas[pregunta.id]) {
+                        const respuesta = respuestas[pregunta.id];
+                       
+                        // Seleccionar opción
+                        if (respuesta.estado) {
+                            const opcion = preguntaElement.querySelector(`.opcion[data-value="${respuesta.estado}"]`);
+                            if (opcion) {
+                                opcion.click();
+                               
+                                // Cargar evidencia si existe
+                                if (respuesta.evidenciaUrl) {
+                                    cameraPreview.innerHTML = `<img src="${respuesta.evidenciaUrl}" alt="Evidencia fotográfica">`;
+                                }
                             }
                         }
+                       
+                        // Cargar observaciones
+                        if (respuesta.observaciones) {
+                            document.getElementById(`observaciones-${pregunta.id}`).value = respuesta.observaciones;
+                        }
                     }
-                   
-                    // Cargar observaciones
-                    if (respuesta.observaciones) {
-                        document.getElementById(`observaciones-${pregunta.id}`).value = respuesta.observaciones;
-                    }
-                }
-            });
+                });
+                
+                container.appendChild(categoriaElement);
+            }
+        }
+        
+        // Función para toggle de categorías
+        function toggleCategoria(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('i');
+            
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
         }
        
         // Función para comprimir imágenes
@@ -2819,7 +3164,13 @@
             const detalle = document.getElementById('reporte-detalle');
             detalle.innerHTML = '';
            
-            preguntasPorArea.forEach(pregunta => {
+            // Filtrar solo preguntas aplicables (no "no_aplica")
+            const preguntasAplicables = preguntasPorArea.filter(p => {
+                const respuesta = respuestas[p.id] || {};
+                return respuesta.estado !== 'no_aplica';
+            });
+            
+            preguntasAplicables.forEach(pregunta => {
                 const respuesta = respuestas[pregunta.id] || {};
                
                 let estadoText, estadoColor;
@@ -2858,8 +3209,7 @@
                 detalle.appendChild(row);
             });
         }
-       
-        // Inicializar gráficos
+         // Inicializar gráficos
         function inicializarGraficos() {
             const ctxDistribucion = document.getElementById('chart-distribucion').getContext('2d');
             const ctxPreguntas = document.getElementById('chart-preguntas').getContext('2d');
@@ -3576,6 +3926,20 @@
                 option.textContent = formatName(area);
                 selectElement.appendChild(option);
             });
+        }
+        
+        // Función para toggle de categorías
+        function toggleCategoria(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('i');
+            
+            if (content.style.display === 'none' || !content.style.display) {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
         }
     </script>
 </body>
