@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <title>Auditoría PPR ISO/TS 22002-1-2009 - Solución de Conexión</title>
+    <title>Auditoría PPR ISO/TS 22002-1-2009 - Solución CORS</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -233,7 +233,7 @@
         }
        
         .debug-content {
-            display: none;
+            display: block;
             font-family: monospace;
             font-size: 0.85rem;
             background: white;
@@ -312,6 +312,22 @@
             align-items: center;
             gap: 10px;
         }
+        
+        .cors-solution {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fef7ff;
+            border-radius: 10px;
+            border: 1px solid #e9d5ff;
+        }
+        
+        .cors-solution h3 {
+            margin-bottom: 10px;
+            color: #8b5cf6;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -324,7 +340,7 @@
                         <i class="fas fa-clipboard-check"></i>
                     </div>
                     <h1>Auditoría PPR</h1>
-                    <p>Solución de problemas de conexión</p>
+                    <p>Solución de problemas de CORS</p>
                 </div>
                
                 <div class="tabs">
@@ -378,6 +394,15 @@
                     </button>
                 </div>
                 
+                <!-- CORS Solution -->
+                <div class="cors-solution">
+                    <h3><i class="fas fa-unlock"></i> Solución CORS</h3>
+                    <p>Se ha detectado un problema de CORS. Hemos implementado una solución alternativa utilizando JSONP para evitar las restricciones de CORS.</p>
+                    <div class="test-results" id="cors-info">
+                        La solución JSONP permite comunicarse con Google Apps Script sin problemas de CORS.
+                    </div>
+                </div>
+                
                 <!-- URL Configuration -->
                 <div class="url-config">
                     <h3><i class="fas fa-cog"></i> Configuración de URL</h3>
@@ -405,7 +430,7 @@
                 <!-- Debug Panel -->
                 <div class="debug-panel">
                     <button class="debug-toggle" id="debug-toggle">
-                        <i class="fas fa-bug"></i> Mostrar información de depuración
+                        <i class="fas fa-bug"></i> Ocultar información de depuración
                     </button>
                     <div class="debug-content" id="debug-content">
                         <div id="debug-info"></div>
@@ -418,18 +443,6 @@
                     | 
                     <span id="script-status">Script: <span class="status-indicator status-offline"></span>Verificando...</span>
                 </div>
-                
-                <!-- Quick Fix Tips -->
-                <div style="margin-top: 20px; padding: 15px; background: #fffbeb; border-radius: 10px; border-left: 4px solid var(--warning);">
-                    <h4 style="color: var(--warning); margin-bottom: 10px;"><i class="fas fa-lightbulb"></i> Solución Rápida</h4>
-                    <p>Si ves "Failed to fetch", verifica que:</p>
-                    <ul style="margin-left: 20px; font-size: 0.9rem;">
-                        <li>La URL del script sea correcta</li>
-                        <li>El script esté desplegado como "Web App"</li>
-                        <li>El acceso sea "Cualquier persona"</li>
-                        <li>No haya errores en la consola (F12)</li>
-                    </ul>
-                </div>
             </div>
         </div>
     </section>
@@ -440,6 +453,7 @@
         
         // Variables globales
         let currentUser = null;
+        let jsonpCallbacks = {};
         
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
@@ -452,9 +466,6 @@
             updateConnectionStatus();
             window.addEventListener('online', updateConnectionStatus);
             window.addEventListener('offline', updateConnectionStatus);
-            
-            // Verificar si el script de Apps Script está accesible
-            testScriptConnection();
             
             // Configurar event listeners
             document.getElementById('btn-login').addEventListener('click', login);
@@ -494,6 +505,10 @@
             // Agregar logs iniciales
             addDebugInfo("Aplicación inicializada correctamente");
             addDebugInfo("URL del script: " + SCRIPT_URL);
+            addDebugInfo("Detectado problema de CORS - Usando solución JSONP");
+            
+            // Probar conexión después de inicializar
+            setTimeout(testScriptConnection, 1000);
         });
         
         // Guardar la URL del script
@@ -512,92 +527,72 @@
             }
         }
         
-        // Función para probar la conexión con el script
-        async function testScriptConnection() {
-            const testResults = document.getElementById('test-results');
-            testResults.innerHTML = "Probando conexión...";
-            
-            try {
-                addDebugInfo("Probando conexión con el script...");
-                
-                // Realizar una solicitud HEAD primero para verificar conectividad
-                const startTime = Date.now();
-                
-                // Usar una función de prueba simple
-                const testResponse = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ action: "test" }),
-                    // Añadir modo 'no-cors' para evitar problemas de CORS
-                    mode: 'cors'
-                });
-                
-                const responseTime = Date.now() - startTime;
-                
-                if (testResponse.ok) {
-                    const data = await testResponse.json();
-                    document.querySelector("#script-status .status-indicator").className = "status-indicator status-online";
-                    document.getElementById('script-status').innerHTML = '<span class="status-indicator status-online"></span>Script: Conectado (' + responseTime + 'ms)';
-                    addDebugInfo("✓ Conexión con el script establecida correctamente");
-                    
-                    testResults.innerHTML = "✓ Conexión exitosa\n";
-                    testResults.innerHTML += "Tiempo de respuesta: " + responseTime + "ms\n";
-                    testResults.innerHTML += "Estado: " + testResponse.status + " " + testResponse.statusText + "\n";
-                    
-                    if (data && data.status) {
-                        testResults.innerHTML += "Respuesta: " + JSON.stringify(data);
-                    }
-                } else {
-                    throw new Error("Error en la respuesta: " + testResponse.status + " " + testResponse.statusText);
-                }
-            } catch (error) {
-                document.querySelector("#script-status .status-indicator").className = "status-indicator status-offline";
-                document.getElementById('script-status').innerHTML = '<span class="status-indicator status-offline"></span>Script: Error de conexión';
-                addDebugInfo("✗ Error conectando con el script: " + error.message);
-                
-                testResults.innerHTML = "✗ Error de conexión:\n" + error.message;
-                
-                // Información adicional para diagnóstico
-                testResults.innerHTML += "\n\nPosibles soluciones:";
-                testResults.innerHTML += "\n1. Verifica que la URL sea correcta";
-                testResults.innerHTML += "\n2. Asegúrate de que el script esté desplegado como 'Web App'";
-                testResults.innerHTML += "\n3. Verifica que el acceso sea 'Cualquier persona'";
-                testResults.innerHTML += "\n4. Revisa la consola del navegador (F12) para más detalles";
-                
-                // Probar con JSONP como alternativa
-                testResults.innerHTML += "\n\nProbando método alternativo...";
-                testJsonpConnection();
-            }
-        }
-        
-        // Método alternativo usando JSONP para evitar problemas de CORS
-        function testJsonpConnection() {
+        // Función para realizar solicitudes JSONP (solución CORS)
+        function jsonpRequest(action, data, callback) {
             const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
             const script = document.createElement('script');
             
-            window[callbackName] = function(data) {
+            // Preparar los datos para la URL
+            const urlParams = new URLSearchParams();
+            urlParams.append('action', action);
+            urlParams.append('callback', callbackName);
+            
+            // Agregar todos los datos adicionales
+            for (const key in data) {
+                if (data.hasOwnProperty(key)) {
+                    urlParams.append(key, data[key]);
+                }
+            }
+            
+            // Configurar el callback global
+            window[callbackName] = function(response) {
                 delete window[callbackName];
                 document.body.removeChild(script);
-                
-                const testResults = document.getElementById('test-results');
-                testResults.innerHTML += "\n✓ JSONP funcionó: " + JSON.stringify(data);
+                callback(null, response);
             };
             
-            script.src = SCRIPT_URL + '?callback=' + callbackName + '&action=test';
-            document.body.appendChild(script);
-            
-            // Timeout para JSONP
+            // Configurar timeout para el callback
             setTimeout(function() {
                 if (window[callbackName]) {
                     delete window[callbackName];
                     document.body.removeChild(script);
-                    
-                    const testResults = document.getElementById('test-results');
-                    testResults.innerHTML += "\n✗ JSONP también falló (timeout)";
+                    callback(new Error('Timeout waiting for JSONP response'));
                 }
-            }, 5000);
+            }, 10000);
+            
+            // Crear y agregar el script a la página
+            script.src = SCRIPT_URL + '?' + urlParams.toString();
+            document.body.appendChild(script);
+        }
+        
+        // Función para probar la conexión con el script
+        function testScriptConnection() {
+            const testResults = document.getElementById('test-results');
+            testResults.innerHTML = "Probando conexión con JSONP...";
+            
+            addDebugInfo("Probando conexión con JSONP...");
+            
+            // Usar JSONP para evitar CORS
+            jsonpRequest('test', {}, function(err, data) {
+                if (err) {
+                    document.querySelector("#script-status .status-indicator").className = "status-indicator status-offline";
+                    document.getElementById('script-status').innerHTML = '<span class="status-indicator status-offline"></span>Script: Error de conexión';
+                    addDebugInfo("✗ Error conectando con el script: " + err.message);
+                    
+                    testResults.innerHTML = "✗ Error de conexión:\n" + err.message;
+                    testResults.innerHTML += "\n\nPosibles soluciones:";
+                    testResults.innerHTML += "\n1. Verifica que la URL sea correcta";
+                    testResults.innerHTML += "\n2. Asegúrate de que el script esté desplegado como 'Web App'";
+                    testResults.innerHTML += "\n3. Verifica que el acceso sea 'Cualquier persona'";
+                } else {
+                    document.querySelector("#script-status .status-indicator").className = "status-indicator status-online";
+                    document.getElementById('script-status').innerHTML = '<span class="status-indicator status-online"></span>Script: Conectado (JSONP)';
+                    addDebugInfo("✓ Conexión con el script establecida correctamente usando JSONP");
+                    
+                    testResults.innerHTML = "✓ Conexión exitosa usando JSONP\n";
+                    testResults.innerHTML += "Respuesta: " + JSON.stringify(data);
+                }
+            });
         }
         
         // Actualizar estado de conexión
@@ -623,8 +618,8 @@
             debugInfo.scrollTop = debugInfo.scrollHeight;
         }
         
-        // Login (MEJORADO con mejor manejo de errores)
-        async function login() {
+        // Login usando JSONP
+        function login() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             const messageContainer = document.getElementById('login-message');
@@ -640,61 +635,54 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando sesión...';
             addDebugInfo("Intentando iniciar sesión con: " + email);
            
-            try {
-                // Verificar conexión a Internet primero
-                if (!navigator.onLine) {
-                    throw new Error("No hay conexión a Internet. Conéctate para iniciar sesión.");
+            // Verificar conexión a Internet primero
+            if (!navigator.onLine) {
+                showMessage('No hay conexión a Internet. Conéctate para iniciar sesión.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                return;
+            }
+            
+            addDebugInfo("Enviando solicitud de login con JSONP...");
+            
+            // Usar JSONP para evitar CORS
+            jsonpRequest('login', {
+                email: email,
+                password: password
+            }, function(err, data) {
+                if (err) {
+                    console.error("Error en login:", err);
+                    addDebugInfo("✗ Error en login: " + err.message);
+                    showMessage('Error: ' + err.message, 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    return;
                 }
                 
-                addDebugInfo("Enviando solicitud al servidor...");
-                
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: "login",
-                        email: email,
-                        password: password
-                    })
-                });
-                
-                addDebugInfo("Respuesta recibida. Procesando...");
-               
-                const data = await response.json();
-                addDebugInfo("Datos de respuesta: " + JSON.stringify(data));
+                addDebugInfo("Respuesta recibida: " + JSON.stringify(data));
                
                 if (data.status === "success") {
                     showMessage('¡Inicio de sesión exitoso!', 'success');
                     addDebugInfo("✓ Inicio de sesión exitoso");
                     
-                    // Simular éxito de login para demostración
+                    // Simular éxito de login
                     setTimeout(() => {
                         showMessage('Redirigiendo a la aplicación principal...', 'success');
                         addDebugInfo("Redirigiendo a la aplicación principal...");
                     }, 1500);
                     
                 } else {
-                    throw new Error(data.message || "Credenciales incorrectas");
+                    showMessage(data.message || "Credenciales incorrectas", 'error');
+                    addDebugInfo("✗ Error en login: " + (data.message || "Credenciales incorrectas"));
                 }
-            } catch (error) {
-                console.error("Error en login:", error);
-                addDebugInfo("✗ Error en login: " + error.message);
-                showMessage('Error: ' + error.message, 'error');
                 
-                // Si es error de CORS, sugerir solución
-                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-                    showMessage('Error de conexión. Verifica la URL y la configuración CORS.', 'error');
-                }
-            } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
-            }
+            });
         }
        
-        // Registro
-        async function register() {
+        // Registro usando JSONP
+        function register() {
             const name = document.getElementById('register-name').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
@@ -710,21 +698,16 @@
                 return;
             }
            
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        action: "register",
-                        name: name,
-                        email: email,
-                        password: password
-                    })
-                });
-               
-                const data = await response.json();
+            // Usar JSONP para evitar CORS
+            jsonpRequest('register', {
+                name: name,
+                email: email,
+                password: password
+            }, function(err, data) {
+                if (err) {
+                    showMessage('Error de conexión: ' + err.message, 'error');
+                    return;
+                }
                
                 if (data.status === "success") {
                     showMessage('¡Cuenta creada con éxito! Por favor inicia sesión', 'success');
@@ -741,9 +724,7 @@
                 } else {
                     showMessage(data.message || "Error al crear la cuenta", 'error');
                 }
-            } catch (error) {
-                showMessage('Error de conexión: ' + error.message, 'error');
-            }
+            });
         }
        
         // Mostrar mensaje en login
