@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer">
-    <title>Auditoría PPR ISO/TS 22002-1-2009 - Solución de Login</title>
+    <title>Auditoría PPR ISO/TS 22002-1-2009 - Solución de Conexión</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -60,7 +60,7 @@
             border-radius: 24px;
             padding: 40px;
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
             position: relative;
             overflow: hidden;
@@ -258,6 +258,60 @@
         .status-offline {
             background-color: var(--danger);
         }
+        
+        .connection-test {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 10px;
+            border: 1px solid #bae6fd;
+        }
+        
+        .connection-test h3 {
+            margin-bottom: 10px;
+            color: var(--info);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-btn {
+            background: var(--info);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .test-results {
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .url-config {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0fdf4;
+            border-radius: 10px;
+            border: 1px solid #bbf7d0;
+        }
+        
+        .url-config h3 {
+            margin-bottom: 10px;
+            color: var(--success);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
@@ -270,7 +324,7 @@
                         <i class="fas fa-clipboard-check"></i>
                     </div>
                     <h1>Auditoría PPR</h1>
-                    <p>Solución de problemas de acceso</p>
+                    <p>Solución de problemas de conexión</p>
                 </div>
                
                 <div class="tabs">
@@ -284,12 +338,12 @@
                 <div id="login-form">
                     <div class="form-group">
                         <label for="login-email">Correo Electrónico</label>
-                        <input type="email" id="login-email" placeholder="tucorreo@empresa.com" value="test@example.com">
+                        <input type="email" id="login-email" placeholder="tucorreo@empresa.com">
                     </div>
                    
                     <div class="form-group">
                         <label for="login-password">Contraseña</label>
-                        <input type="password" id="login-password" placeholder="Ingresa tu contraseña" value="password123">
+                        <input type="password" id="login-password" placeholder="Ingresa tu contraseña">
                     </div>
                    
                     <button class="btn btn-primary" id="btn-login">
@@ -324,6 +378,30 @@
                     </button>
                 </div>
                 
+                <!-- URL Configuration -->
+                <div class="url-config">
+                    <h3><i class="fas fa-cog"></i> Configuración de URL</h3>
+                    <div class="form-group">
+                        <label for="script-url">URL de Google Apps Script</label>
+                        <input type="text" id="script-url" placeholder="https://script.google.com/macros/s/.../exec">
+                    </div>
+                    <button class="test-btn" id="save-url">
+                        <i class="fas fa-save"></i> Guardar URL
+                    </button>
+                </div>
+                
+                <!-- Connection Test -->
+                <div class="connection-test">
+                    <h3><i class="fas fa-wifi"></i> Prueba de Conexión</h3>
+                    <p>Verifica la conexión con tu script de Google Apps</p>
+                    <button class="test-btn" id="test-connection">
+                        <i class="fas fa-plug"></i> Probar Conexión
+                    </button>
+                    <div class="test-results" id="test-results">
+                        <!-- Los resultados de la prueba se mostrarán aquí -->
+                    </div>
+                </div>
+                
                 <!-- Debug Panel -->
                 <div class="debug-panel">
                     <button class="debug-toggle" id="debug-toggle">
@@ -340,13 +418,25 @@
                     | 
                     <span id="script-status">Script: <span class="status-indicator status-offline"></span>Verificando...</span>
                 </div>
+                
+                <!-- Quick Fix Tips -->
+                <div style="margin-top: 20px; padding: 15px; background: #fffbeb; border-radius: 10px; border-left: 4px solid var(--warning);">
+                    <h4 style="color: var(--warning); margin-bottom: 10px;"><i class="fas fa-lightbulb"></i> Solución Rápida</h4>
+                    <p>Si ves "Failed to fetch", verifica que:</p>
+                    <ul style="margin-left: 20px; font-size: 0.9rem;">
+                        <li>La URL del script sea correcta</li>
+                        <li>El script esté desplegado como "Web App"</li>
+                        <li>El acceso sea "Cualquier persona"</li>
+                        <li>No haya errores en la consola (F12)</li>
+                    </ul>
+                </div>
             </div>
         </div>
     </section>
 
     <script>
-        // URL de tu Google Apps Script - REEMPLAZA CON TU URL
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyxxNVIK8OYeDTDtP9baKTdtZCfIHEe628j1jE3KeIyDAb1Mj3U3rJUzaybtvX-xX-u/exec";
+        // URL por defecto - será reemplazada por la guardada en localStorage
+        let SCRIPT_URL = localStorage.getItem('script_url') || "https://script.google.com/macros/s/AKfycbyxxNVIK8OYeDTDtP9baKTdtZCfIHEe628j1jE3KeIyDAb1Mj3U3rJUzaybtvX-xX-u/exec";
         
         // Variables globales
         let currentUser = null;
@@ -354,6 +444,9 @@
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM cargado - Inicializando aplicación");
+            
+            // Establecer la URL guardada en el input
+            document.getElementById('script-url').value = SCRIPT_URL;
             
             // Verificar conexión a Internet
             updateConnectionStatus();
@@ -366,6 +459,8 @@
             // Configurar event listeners
             document.getElementById('btn-login').addEventListener('click', login);
             document.getElementById('btn-register').addEventListener('click', register);
+            document.getElementById('save-url').addEventListener('click', saveScriptUrl);
+            document.getElementById('test-connection').addEventListener('click', testScriptConnection);
             
             // Tabs de login/registro
             document.querySelectorAll('.tab').forEach(tab => {
@@ -401,32 +496,108 @@
             addDebugInfo("URL del script: " + SCRIPT_URL);
         });
         
+        // Guardar la URL del script
+        function saveScriptUrl() {
+            const url = document.getElementById('script-url').value.trim();
+            if (url) {
+                SCRIPT_URL = url;
+                localStorage.setItem('script_url', url);
+                addDebugInfo("URL guardada: " + url);
+                showMessage('URL guardada correctamente', 'success');
+                
+                // Probar la nueva conexión
+                testScriptConnection();
+            } else {
+                showMessage('Por favor ingresa una URL válida', 'error');
+            }
+        }
+        
         // Función para probar la conexión con el script
         async function testScriptConnection() {
+            const testResults = document.getElementById('test-results');
+            testResults.innerHTML = "Probando conexión...";
+            
             try {
                 addDebugInfo("Probando conexión con el script...");
                 
+                // Realizar una solicitud HEAD primero para verificar conectividad
+                const startTime = Date.now();
+                
+                // Usar una función de prueba simple
                 const testResponse = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ action: "test" })
+                    body: JSON.stringify({ action: "test" }),
+                    // Añadir modo 'no-cors' para evitar problemas de CORS
+                    mode: 'cors'
                 });
                 
+                const responseTime = Date.now() - startTime;
+                
                 if (testResponse.ok) {
+                    const data = await testResponse.json();
                     document.querySelector("#script-status .status-indicator").className = "status-indicator status-online";
-                    document.getElementById('script-status').innerHTML = '<span class="status-indicator status-online"></span>Script: Conectado';
+                    document.getElementById('script-status').innerHTML = '<span class="status-indicator status-online"></span>Script: Conectado (' + responseTime + 'ms)';
                     addDebugInfo("✓ Conexión con el script establecida correctamente");
+                    
+                    testResults.innerHTML = "✓ Conexión exitosa\n";
+                    testResults.innerHTML += "Tiempo de respuesta: " + responseTime + "ms\n";
+                    testResults.innerHTML += "Estado: " + testResponse.status + " " + testResponse.statusText + "\n";
+                    
+                    if (data && data.status) {
+                        testResults.innerHTML += "Respuesta: " + JSON.stringify(data);
+                    }
                 } else {
-                    throw new Error("Error en la respuesta: " + testResponse.status);
+                    throw new Error("Error en la respuesta: " + testResponse.status + " " + testResponse.statusText);
                 }
             } catch (error) {
                 document.querySelector("#script-status .status-indicator").className = "status-indicator status-offline";
                 document.getElementById('script-status').innerHTML = '<span class="status-indicator status-offline"></span>Script: Error de conexión';
                 addDebugInfo("✗ Error conectando con el script: " + error.message);
-                addDebugInfo("Por favor verifica que la URL del script sea correcta y que esté desplegado como 'Ejecutar como: Usuario' y 'Quién tiene acceso: Cualquier persona'");
+                
+                testResults.innerHTML = "✗ Error de conexión:\n" + error.message;
+                
+                // Información adicional para diagnóstico
+                testResults.innerHTML += "\n\nPosibles soluciones:";
+                testResults.innerHTML += "\n1. Verifica que la URL sea correcta";
+                testResults.innerHTML += "\n2. Asegúrate de que el script esté desplegado como 'Web App'";
+                testResults.innerHTML += "\n3. Verifica que el acceso sea 'Cualquier persona'";
+                testResults.innerHTML += "\n4. Revisa la consola del navegador (F12) para más detalles";
+                
+                // Probar con JSONP como alternativa
+                testResults.innerHTML += "\n\nProbando método alternativo...";
+                testJsonpConnection();
             }
+        }
+        
+        // Método alternativo usando JSONP para evitar problemas de CORS
+        function testJsonpConnection() {
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+            const script = document.createElement('script');
+            
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                document.body.removeChild(script);
+                
+                const testResults = document.getElementById('test-results');
+                testResults.innerHTML += "\n✓ JSONP funcionó: " + JSON.stringify(data);
+            };
+            
+            script.src = SCRIPT_URL + '?callback=' + callbackName + '&action=test';
+            document.body.appendChild(script);
+            
+            // Timeout para JSONP
+            setTimeout(function() {
+                if (window[callbackName]) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    
+                    const testResults = document.getElementById('test-results');
+                    testResults.innerHTML += "\n✗ JSONP también falló (timeout)";
+                }
+            }, 5000);
         }
         
         // Actualizar estado de conexión
@@ -511,6 +682,11 @@
                 console.error("Error en login:", error);
                 addDebugInfo("✗ Error en login: " + error.message);
                 showMessage('Error: ' + error.message, 'error');
+                
+                // Si es error de CORS, sugerir solución
+                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                    showMessage('Error de conexión. Verifica la URL y la configuración CORS.', 'error');
+                }
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
