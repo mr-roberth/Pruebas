@@ -2705,58 +2705,68 @@
             }
         }
        
-        // Login (MEJORADO)
-        async function login() {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const messageContainer = document.getElementById('login-message');
-            const btn = document.getElementById('btn-login');
-            const originalText = btn.innerHTML;
-           
-            if (!email || !password) {
-                showMessage('Por favor completa todos los campos', 'error');
-                return;
-            }
-           
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando sesión...';
-           
-            try {
-                console.log("Intentando login con:", data.email);
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        action: "login",
-                        email: email,
-                        password: password
-                    })
-                });
-               
-                const data = await response.json();
-               
-                if (data.status === "success") {
-                    currentUser = data.user;
-                    updateUserBar();
-                    document.getElementById('user-name').textContent = currentUser.name;
-                    document.getElementById('nombre-auditor').value = currentUser.name;
-                    document.getElementById('login').classList.remove('active');
-                    document.getElementById('main-app').style.display = 'block';
-                    showPage('inicio');
-                    
-                    // Cargar progreso guardado si existe
-                    await cargarProgresoGuardado();
-                } else {
-                    showMessage(data.message || "Credenciales incorrectas", 'error');
-                }
-            } catch (error) {
-              console.error("Error completo:", error);
-              showMessage('Error de conexión: ' + error.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
+        // Login mejorado con mejor manejo de errores
+async function login() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const messageContainer = document.getElementById('login-message');
+    const btn = document.getElementById('btn-login');
+    const originalText = btn.innerHTML;
+
+    if (!email || !password) {
+        showMessage('Por favor completa todos los campos', 'error');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando sesión...';
+
+    try {
+        console.log("Intentando login con:", email);
+        
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: "login",
+                email: email,
+                password: password
+            })
+        });
+
+        console.log("Respuesta recibida, status:", response.status);
+        
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
         }
-       
+
+        const data = await response.json();
+        console.log("Datos recibidos:", data);
+
+        if (data.status === "success") {
+            currentUser = data.user;
+            updateUserBar();
+            document.getElementById('user-name').textContent = currentUser.name;
+            document.getElementById('nombre-auditor').value = currentUser.name;
+            document.getElementById('login').classList.remove('active');
+            document.getElementById('main-app').style.display = 'block';
+            showPage('inicio');
+            
+            // Cargar progreso guardado si existe
+            await cargarProgresoGuardado();
+        } else {
+            showMessage(data.message || "Credenciales incorrectas", 'error');
+        }
+    } catch (error) {
+        console.error('Error completo en login:', error);
+        showMessage('Error de conexión: ' + error.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
         // Registro
         async function register() {
             const name = document.getElementById('register-name').value;
