@@ -2722,6 +2722,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Iniciando sesión...';
            
             try {
+                console.log("Intentando login con:", data.email);
                 const response = await fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -2748,7 +2749,8 @@
                     showMessage(data.message || "Credenciales incorrectas", 'error');
                 }
             } catch (error) {
-                showMessage('Error de conexión: ' + error.message, 'error');
+              console.error("Error completo:", error);
+              showMessage('Error de conexión: ' + error.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
