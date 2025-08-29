@@ -2202,156 +2202,110 @@ async function cargarDashboard() {
     }
 }
 
-        // Función para finalizar auditoría
+        // Función para finalizar auditoría - VERSIÓN CORREGIDA
 async function finalizarAuditoria() {
-    const btn = document.getElementById('finalizar-auditoria');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-    
-    try {
-        const preguntasContestadas = Object.keys(respuestas).length;
-        if (preguntasContestadas < preguntasPorArea.length) {
-            alert('Por favor responde todas las preguntas antes de finalizar la auditoría.');
-            return;
-        }
-        for (const pregunta of preguntasPorArea) {
-            const respuesta = respuestas[pregunta.id] || {};
-            if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && 
-                !respuesta.evidenciaUrl && !respuesta.observaciones) {
-                alert(`Para la pregunta ${pregunta.id} ("${pregunta.texto}"), debes adjuntar evidencia fotográfica o agregar observaciones para justificar el cumplimiento parcial o no cumplimiento.`);
-            return;
-        }
+  const btn = document.getElementById('finalizar-auditoria');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+  
+  try {
+    const preguntasContestadas = Object.keys(respuestas).length;
+    if (preguntasContestadas < preguntasPorArea.length) {
+      if (!confirm('No has respondido todas las preguntas. ¿Estás seguro de que quieres finalizar la auditoría?')) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
+        return;
+      }
     }
     
-    // En la función finalizarAuditoria(), modificar el cálculo de porcentajes:
-// CÁLCULO CORREGIDO DE PORCENTAJES excluyendo "no_aplica"
-const totalPreguntas = preguntasPorArea.length;
-const noAplicaCount = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
-const totalPreguntasAplicables = totalPreguntas - noAplicaCount;
-
-const cumple = Object.values(respuestas).filter(r => r.estado === 'cumple').length;
-const parcial = Object.values(respuestas).filter(r => r.estado === 'parcial').length;
-const noCumple = Object.values(respuestas).filter(r => r.estado === 'no_cumple').length;
-
-// Calcular porcentajes sobre totalPreguntasAplicables
-let porcCumple = totalPreguntasAplicables > 0 ? Math.round((cumple / totalPreguntasAplicables) * 100) : 0;
-let porcParcial = totalPreguntasAplicables > 0 ? Math.round((parcial / totalPreguntasAplicables) * 100) : 0;
-let porcNoCumple = totalPreguntasAplicables > 0 ? Math.round((noCumple / totalPreguntasAplicables) * 100) : 0;
-let porcNoAplica = Math.round((noAplicaCount / totalPreguntas) * 100);
-
-// Ajustar redondeo para que los porcentajes de aplicables sumen 100%
-const total = porcCumple + porcParcial + porcNoCumple;
-const diff = 100 - total;
-
-if (diff !== 0) {
-    // Ajustar el porcentaje más grande
-    const maxValue = Math.max(porcCumple, porcParcial, porcNoCumple);
-    if (porcCumple === maxValue) {
-        porcCumple += diff;
-    } else if (porcParcial === maxValue) {
-        porcParcial += diff;
-    } else {
-        porcNoCumple += diff;
-    }
-}
-    
-                // Determinar resultado general
-    let resultado = "Cumplimiento Total";
-    let color = "var(--success)";
-    
-    if (noCumple > 0 || parcial > 0) {
-        resultado = "Cumplimiento Parcial";
-        color = "var(--warning)";
+    // Verificar evidencias para cumplimiento parcial y no cumplimiento
+    for (const pregunta of preguntasPorArea) {
+      const respuesta = respuestas[pregunta.id] || {};
+      if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && 
+          !respuesta.evidenciaUrl && !respuesta.observaciones) {
+        alert(`Para la pregunta ${pregunta.id} ("${pregunta.texto}"), debes adjuntar evidencia fotográfica o agregar observaciones para justificar el cumplimiento parcial o no cumplimiento.`);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
+        return;
+      }
     }
     
-    if (noCumple > totalPreguntas * 0.1) {
-        resultado = "No Cumple";
-        color = "var(--danger)";
-    }
-    
-    document.getElementById('reporte-cumple').textContent = porcCumple + '%';
-    document.getElementById('reporte-parcial').textContent = porcParcial + '%';
-    document.getElementById('reporte-no-cumple').textContent = porcNoCumple + '%';
-    document.getElementById('reporte-no-aplica').textContent = porcNoAplica + '%';
-    document.getElementById('reporte-resultado').textContent = resultado;
-    document.getElementById('reporte-resultado').style.color = color;
-    
+    // Preparar datos para enviar
     const preguntasData = [];
     
     preguntasPorArea.forEach(pregunta => {
-        const respuesta = respuestas[pregunta.id] || {};
-        preguntasData.push({
-            id: pregunta.id,
-            texto: pregunta.texto,
-            categoria: pregunta.categoria,
-            estado: respuesta.estado || "no_respondida",
-            evidenciaUrl: respuesta.evidenciaUrl || null,
-            observaciones: respuesta.observaciones || ""
-        });
+      const respuesta = respuestas[pregunta.id] || {};
+      preguntasData.push({
+        id: pregunta.id,
+        texto: pregunta.texto,
+        categoria: pregunta.categoria,
+        estado: respuesta.estado || "no_respondida",
+        evidenciaUrl: respuesta.evidenciaUrl || null,
+        observaciones: respuesta.observaciones || ""
+      });
     });
     
-                // Verificar conexión para envío
+    // Verificar conexión para envío
     if (!navigator.onLine) {
-                    // Guardar en base de datos local como "pending"
-        await saveAuditToLocalDB({
-            auditorData: auditorData,
-            respuestas: respuestas,
-            preguntas: preguntasData,
-            porcCumple: porcCumple,
-            porcParcial: porcParcial,
-            porcNoCumple: porcNoCumple,
-            porcNoAplica: porcNoAplica
-        }, "pending");
-        
-        alert('Auditoría guardada localmente. Se enviará automáticamente cuando se restablezca la conexión.');
-        showPage('inicio');
-        return;
+      // Guardar en base de datos local como "pending"
+      await saveAuditToLocalDB({
+        auditorData: auditorData,
+        respuestas: respuestas,
+        preguntas: preguntasData,
+        porcCumple: 0, // Se calcularán en el backend
+        porcParcial: 0,
+        porcNoCumple: 0,
+        porcNoAplica: 0
+      }, "pending");
+      
+      alert('Auditoría guardada localmente. Se enviará automáticamente cuando se restablezca la conexión.');
+      showPage('inicio');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
+      return;
     }
     
     const payload = {
-        action: "submitAudit",
-        auditor: auditorData.nombre,
-        unidad: auditorData.unidad,
-        area: auditorData.area,
-        fecha: auditorData.fecha,
-        preguntas: preguntasData,
-        porcCumple: porcCumple,
-        porcParcial: porcParcial,
-        porcNoCumple: porcNoCumple,
-        porcNoAplica: porcNoAplica
+      action: "submitAudit",
+      auditor: auditorData.nombre,
+      unidad: auditorData.unidad,
+      area: auditorData.area,
+      fecha: auditorData.fecha,
+      preguntas: preguntasData
+      // Los porcentajes se calcularán en el backend
     };
     
     const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload)
+      method: 'POST',
+      body: JSON.stringify(payload)
     });
     
     const data = await response.json();
     
     if (data.status === "success") {
-        auditorData.auditId = data.auditId;
-        
-        if (data.pdfUrl) {
-            document.getElementById('reporte-pdf-url').value = data.pdfUrl;
-            mostrarPDF(data.pdfUrl);
-        }
-        
-        generarDetalleReporte();
-        
-        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.querySelector('.nav-link[data-page="reportes"]').classList.add('active');
-        showPage('reportes');
-        
-        cargarReportes();
+      auditorData.auditId = data.auditId;
+      
+      if (data.pdfUrl) {
+        document.getElementById('reporte-pdf-url').value = data.pdfUrl;
+        mostrarPDF(data.pdfUrl);
+      }
+      
+      generarDetalleReporte();
+      
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      document.querySelector('.nav-link[data-page="reportes"]').classList.add('active');
+      showPage('reportes');
+      
+      cargarReportes();
     } else {
-        throw new Error(data.message || "Error en el servidor");
+      throw new Error(data.message || "Error en el servidor");
     }
-} catch (error) {
+  } catch (error) {
     alert('Error al enviar la auditoría: ' + error.message);
-} finally {
+  } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
-}
+  }
 }
 
 async function guardarProgreso() {
