@@ -2223,35 +2223,37 @@ async function finalizarAuditoria() {
         }
     }
     
-                // CÁLCULO CORREGIDO DE PORCENTAJES
-    const totalPreguntas = preguntasPorArea.length;
-    const cumple = Object.values(respuestas).filter(r => r.estado === 'cumple').length;
-    const parcial = Object.values(respuestas).filter(r => r.estado === 'parcial').length;
-    const noCumple = Object.values(respuestas).filter(r => r.estado === 'no_cumple').length;
-    const noAplica = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
-    
-    let porcCumple = Math.round((cumple / totalPreguntas) * 100);
-    let porcParcial = Math.round((parcial / totalPreguntas) * 100);
-    let porcNoCumple = Math.round((noCumple / totalPreguntas) * 100);
-    let porcNoAplica = Math.round((noAplica / totalPreguntas) * 100);
-    
-                // Ajustar redondeo para que sume 100%
-    const total = porcCumple + porcParcial + porcNoCumple + porcNoAplica;
-    const diff = 100 - total;
-    
-    if (diff !== 0) {
-                    // Ajustar el porcentaje más grande
-        const maxValue = Math.max(porcCumple, porcParcial, porcNoCumple, porcNoAplica);
-        if (porcCumple === maxValue) {
-            porcCumple += diff;
-        } else if (porcParcial === maxValue) {
-            porcParcial += diff;
-        } else if (porcNoCumple === maxValue) {
-            porcNoCumple += diff;
-        } else {
-            porcNoAplica += diff;
-        }
+    // En la función finalizarAuditoria(), modificar el cálculo de porcentajes:
+// CÁLCULO CORREGIDO DE PORCENTAJES excluyendo "no_aplica"
+const totalPreguntas = preguntasPorArea.length;
+const noAplicaCount = Object.values(respuestas).filter(r => r.estado === 'no_aplica').length;
+const totalPreguntasAplicables = totalPreguntas - noAplicaCount;
+
+const cumple = Object.values(respuestas).filter(r => r.estado === 'cumple').length;
+const parcial = Object.values(respuestas).filter(r => r.estado === 'parcial').length;
+const noCumple = Object.values(respuestas).filter(r => r.estado === 'no_cumple').length;
+
+// Calcular porcentajes sobre totalPreguntasAplicables
+let porcCumple = totalPreguntasAplicables > 0 ? Math.round((cumple / totalPreguntasAplicables) * 100) : 0;
+let porcParcial = totalPreguntasAplicables > 0 ? Math.round((parcial / totalPreguntasAplicables) * 100) : 0;
+let porcNoCumple = totalPreguntasAplicables > 0 ? Math.round((noCumple / totalPreguntasAplicables) * 100) : 0;
+let porcNoAplica = Math.round((noAplicaCount / totalPreguntas) * 100);
+
+// Ajustar redondeo para que los porcentajes de aplicables sumen 100%
+const total = porcCumple + porcParcial + porcNoCumple;
+const diff = 100 - total;
+
+if (diff !== 0) {
+    // Ajustar el porcentaje más grande
+    const maxValue = Math.max(porcCumple, porcParcial, porcNoCumple);
+    if (porcCumple === maxValue) {
+        porcCumple += diff;
+    } else if (porcParcial === maxValue) {
+        porcParcial += diff;
+    } else {
+        porcNoCumple += diff;
     }
+}
     
                 // Determinar resultado general
     let resultado = "Cumplimiento Total";
