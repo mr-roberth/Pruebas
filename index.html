@@ -2202,7 +2202,7 @@ async function cargarDashboard() {
     }
 }
 
-        // Función para finalizar auditoría - VERSIÓN CORREGIDA
+        // Función para finalizar auditoría - VERSIÓN MEJORADA
 async function finalizarAuditoria() {
   const btn = document.getElementById('finalizar-auditoria');
   btn.disabled = true;
@@ -2245,6 +2245,20 @@ async function finalizarAuditoria() {
       });
     });
     
+    // Calcular porcentajes
+    const totalPreguntas = preguntasData.length;
+    const noAplicaCount = preguntasData.filter(p => p.estado === "no_aplica").length;
+    const totalPreguntasAplicables = totalPreguntas - noAplicaCount;
+    
+    const cumpleCount = preguntasData.filter(p => p.estado === "cumple").length;
+    const parcialCount = preguntasData.filter(p => p.estado === "parcial").length;
+    const noCumpleCount = preguntasData.filter(p => p.estado === "no_cumple").length;
+    
+    const porcCumple = totalPreguntasAplicables > 0 ? Math.round((cumpleCount / totalPreguntasAplicables) * 100) : 0;
+    const porcParcial = totalPreguntasAplicables > 0 ? Math.round((parcialCount / totalPreguntasAplicables) * 100) : 0;
+    const porcNoCumple = totalPreguntasAplicables > 0 ? Math.round((noCumpleCount / totalPreguntasAplicables) * 100) : 0;
+    const porcNoAplica = Math.round((noAplicaCount / totalPreguntas) * 100);
+    
     // Verificar conexión para envío
     if (!navigator.onLine) {
       // Guardar en base de datos local como "pending"
@@ -2252,10 +2266,10 @@ async function finalizarAuditoria() {
         auditorData: auditorData,
         respuestas: respuestas,
         preguntas: preguntasData,
-        porcCumple: 0, // Se calcularán en el backend
-        porcParcial: 0,
-        porcNoCumple: 0,
-        porcNoAplica: 0
+        porcCumple: porcCumple,
+        porcParcial: porcParcial,
+        porcNoCumple: porcNoCumple,
+        porcNoAplica: porcNoAplica
       }, "pending");
       
       alert('Auditoría guardada localmente. Se enviará automáticamente cuando se restablezca la conexión.');
@@ -2271,8 +2285,11 @@ async function finalizarAuditoria() {
       unidad: auditorData.unidad,
       area: auditorData.area,
       fecha: auditorData.fecha,
-      preguntas: preguntasData
-      // Los porcentajes se calcularán en el backend
+      preguntas: preguntasData,
+      porcCumple: porcCumple,
+      porcParcial: porcParcial,
+      porcNoCumple: porcNoCumple,
+      porcNoAplica: porcNoAplica
     };
     
     const response = await fetch(SCRIPT_URL, {
@@ -2287,7 +2304,11 @@ async function finalizarAuditoria() {
       
       if (data.pdfUrl) {
         document.getElementById('reporte-pdf-url').value = data.pdfUrl;
-        mostrarPDF(data.pdfUrl);
+        
+        // Pequeño retraso para asegurar que el PDF esté disponible
+        setTimeout(() => {
+          mostrarPDF(data.pdfUrl);
+        }, 2000);
       }
       
       generarDetalleReporte();
@@ -2297,6 +2318,8 @@ async function finalizarAuditoria() {
       showPage('reportes');
       
       cargarReportes();
+      
+      alert('¡Auditoría completada con éxito! El reporte se ha generado correctamente.');
     } else {
       throw new Error(data.message || "Error en el servidor");
     }
