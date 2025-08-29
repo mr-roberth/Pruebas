@@ -31,27 +31,6 @@
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             --transition: all 0.3s ease;
         }
-        .categoria-section {
-    margin-bottom: 30px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.categoria-header {
-    background: linear-gradient(to right, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white;
-    padding: 15px 20px;
-}
-
-.categoria-header h3 {
-    margin: 0;
-    font-size: 1.2rem;
-}
-
-.preguntas-categoria {
-    padding: 15px;
-}
        
         * {
             margin: 0;
@@ -1229,22 +1208,14 @@
                     <div class="form-group">
                         <label for="unidad-negocio">Unidad de Negocio</label>
                         <select id="unidad-negocio">
-                        <option value="">Selecciona una unidad</option>
-                        <option value="ingenio_huixtla">Ingenio Huixtla</option>
-                        <option value="ingenio_modelo">Ingenio Modelo</option>
-                        <option value="ingenio_san_pedro">Ingenio San Pedro</option>
-                        <option value="ingenio_santa_clara">Ingenio Santa Clara</option>
-                        <option value="dulcinea_chiapas">Dulcinea - Chiapas</option>
-                        <option value="dulcinea_michoacan">Dulcinea Michoacán</option>
-                        <option value="cafetalera_cordoba">Cafetalera - Cordoba</option>
-                        <!-- Nuevas unidades -->
-                        <option value="almacen_tamarindos">Almacén Tamarindos</option>
-                        <option value="almacen_5_febrero">Almacén 5 de Febrero</option>
-                        <option value="almacen_cafetalera">Almacén Cafetalera</option>
-                        <option value="almacen_argo">Almacén Argo</option>
-                        <option value="almacen_tinaja">Almacén Tinaja</option>
-                        <option value="almacen_fortin">Almacén Fortin</option>
-                        <option value="almacen_san_sebastian">Almacén San Sebastián</option>
+                            <option value="">Selecciona una unidad</option>
+                            <option value="ingenio_huixtla">Ingenio Huixtla</option>
+                            <option value="ingenio_modelo">Ingenio Modelo</option>
+                            <option value="ingenio_san_pedro">Ingenio San Pedro</option>
+                            <option value="ingenio_santa_clara">Ingenio Santa Clara</option>
+                            <option value="dulcinea_chiapas">Dulcinea - Chiapas</option>
+                            <option value="dulcinea_michoacan">Dulcinea Michoacán</option>
+                            <option value="cafetalera_cordoba">Cafetalera - Cordoba</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1327,14 +1298,6 @@
                                 <option value="dulcinea_chiapas">Dulcinea - Chiapas</option>
                                 <option value="dulcinea_michoacan">Dulcinea Michoacán</option>
                                 <option value="cafetalera_cordoba">Cafetalera - Cordoba</option>
-                                <!-- Nuevas unidades -->
-                                <option value="almacen_tamarindos">Almacén Tamarindos</option>
-                                <option value="almacen_5_febrero">Almacén 5 de Febrero</option>
-                                <option value="almacen_cafetalera">Almacén Cafetalera</option>
-                                <option value="almacen_argo">Almacén Argo</option>
-                                <option value="almacen_tinaja">Almacén Tinaja</option>
-                                <option value="almacen_fortin">Almacén Fortin</option>
-                                <option value="almacen_san_sebastian">Almacén San Sebastián</option>
                             </select>
                         </div>
                        
@@ -2220,16 +2183,13 @@
                     return;
                 }
                
-                // Reemplazar la validación actual con:
-for (const pregunta of preguntasPorArea) {
-    const respuesta = respuestas[pregunta.id] || {};
-    if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && 
-        !respuesta.evidenciaUrl && 
-        (!respuesta.observaciones || respuesta.observaciones.trim() === '')) {
-        alert(`Para la pregunta ${pregunta.id} ("${pregunta.texto}") debe adjuntar evidencia fotográfica o agregar un comentario.`);
-        return;
-    }
-}
+                for (const pregunta of preguntasPorArea) {
+                    const respuesta = respuestas[pregunta.id] || {};
+                    if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && !respuesta.evidenciaUrl) {
+                        alert(`Por favor, adjunta evidencia fotográfica para la pregunta ${pregunta.id}`);
+                        return;
+                    }
+                }
                
                 // CÁLCULO CORREGIDO DE PORCENTAJES
                 const totalPreguntas = preguntasPorArea.length;
@@ -2362,49 +2322,25 @@ for (const pregunta of preguntasPorArea) {
        
         // Guardar progreso de auditoría
         async function guardarProgreso() {
-    if (!auditorData) {
-        alert('Primero selecciona una unidad y área para auditar');
-        return;
-    }
-    
-    try {
-        // Guardar imágenes como base64 en respuestas
-        const respuestasConImagenes = {...respuestas};
-        
-        for (const preguntaId in respuestasConImagenes) {
-            if (respuestasConImagenes[preguntaId].evidenciaUrl && 
-                respuestasConImagenes[preguntaId].evidenciaUrl.startsWith('data:')) {
-                // Ya está en base64, no hacer nada
-            } else if (respuestasConImagenes[preguntaId].evidenciaUrl) {
-                // Convertir URL a base64
-                try {
-                    const response = await fetch(respuestasConImagenes[preguntaId].evidenciaUrl);
-                    const blob = await response.blob();
-                    const base64 = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.readAsDataURL(blob);
-                    });
-                    respuestasConImagenes[preguntaId].evidenciaUrl = base64;
-                } catch (error) {
-                    console.error("Error convirtiendo imagen a base64:", error);
-                }
+            if (!auditorData) {
+                alert('Primero selecciona una unidad y área para auditar');
+                return;
+            }
+           
+            try {
+                const auditId = await saveAuditToLocalDB({
+                    auditorData: auditorData,
+                    respuestas: respuestas,
+                    preguntasPorArea: preguntasPorArea
+                }, "draft");
+               
+                alert(`Progreso guardado (ID: ${auditId}). Puedes continuar más tarde.`);
+                showPage('guardadas');
+               
+            } catch (error) {
+                alert('Error al guardar: ' + error.message);
             }
         }
-        
-        const auditId = await saveAuditToLocalDB({
-            auditorData: auditorData,
-            respuestas: respuestasConImagenes,
-            preguntasPorArea: preguntasPorArea
-        }, "draft");
-        
-        alert(`Progreso guardado (ID: ${auditId}). Puedes continuar más tarde.`);
-        showPage('guardadas');
-        
-    } catch (error) {
-        alert('Error al guardar: ' + error.message);
-    }
-}
        
         // Cargar auditorías guardadas
         async function cargarAuditoriasGuardadas() {
@@ -2463,37 +2399,37 @@ for (const pregunta of preguntasPorArea) {
        
         // Cargar una auditoría guardada
         async function cargarAuditoriaGuardada(auditId) {
-    try {
-        const transaction = db.transaction([STORE_AUDITS], "readonly");
-        const store = transaction.objectStore(STORE_AUDITS);
-        const request = store.get(Number(auditId));
-        
-        request.onsuccess = (event) => {
-            const audit = event.target.result;
-            if (!audit) throw new Error("Auditoría no encontrada");
-            
-            // Cargar datos en las variables globales
-            auditorData = audit.auditorData;
-            respuestas = audit.respuestas;
-            preguntasPorArea = audit.preguntasPorArea;
-            
-            // Actualizar UI
-            document.getElementById('current-auditor').textContent = auditorData.nombre;
-            document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
-            document.getElementById('current-area').textContent = formatName(auditorData.area);
-            document.getElementById('current-date').textContent = auditorData.fecha;
-            
-            // Generar preguntas con respuestas cargadas
-            generarPreguntas();
-            
-            // Mostrar sección de auditoría
-            showPage('auditoria');
-        };
-        
-    } catch (error) {
-        alert('Error al cargar auditoría: ' + error.message);
-    }
-}
+            try {
+                const transaction = db.transaction([STORE_AUDITS], "readonly");
+                const store = transaction.objectStore(STORE_AUDITS);
+                const request = store.get(Number(auditId));
+               
+                request.onsuccess = (event) => {
+                    const audit = event.target.result;
+                    if (!audit) throw new Error("Auditoría no encontrada");
+                   
+                    // Cargar datos en las variables globales
+                    auditorData = audit.auditorData;
+                    respuestas = audit.respuestas;
+                    preguntasPorArea = audit.preguntasPorArea;
+                   
+                    // Actualizar UI
+                    document.getElementById('current-auditor').textContent = auditorData.nombre;
+                    document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
+                    document.getElementById('current-area').textContent = formatName(auditorData.area);
+                    document.getElementById('current-date').textContent = auditorData.fecha;
+                   
+                    // Generar preguntas con respuestas cargadas
+                    generarPreguntas();
+                   
+                    // Mostrar sección de auditoría
+                    showPage('auditoria');
+                };
+               
+            } catch (error) {
+                alert('Error al cargar auditoría: ' + error.message);
+            }
+        }
        
         // Login
         async function login() {
@@ -2684,72 +2620,49 @@ for (const pregunta of preguntasPorArea) {
        
         // Generar preguntas de auditoría
         function generarPreguntas() {
-    const container = document.getElementById('preguntas-container');
-    container.innerHTML = '';
-    
-    // Agrupar preguntas por categoría
-    const preguntasPorCategoria = {};
-    preguntasPorArea.forEach(pregunta => {
-        if (!preguntasPorCategoria[pregunta.categoria]) {
-            preguntasPorCategoria[pregunta.categoria] = [];
-        }
-        preguntasPorCategoria[pregunta.categoria].push(pregunta);
-    });
-    
-    // Crear secciones por categoría
-    Object.keys(preguntasPorCategoria).forEach(categoria => {
-        const categoriaSection = document.createElement('div');
-        categoriaSection.className = 'categoria-section';
-        categoriaSection.innerHTML = `
-            <div class="categoria-header">
-                <h3>${categoria}</h3>
-            </div>
-            <div class="preguntas-categoria">
-                <!-- Las preguntas se insertarán aquí -->
-            </div>
-        `;
-        
-        const preguntasContainer = categoriaSection.querySelector('.preguntas-categoria');
-        
-        preguntasPorCategoria[categoria].forEach((pregunta, index) => {
-            const preguntaElement = document.createElement('div');
-            preguntaElement.className = 'pregunta-card';
-            preguntaElement.innerHTML = `
-                <div class="pregunta-header">
-                    <div class="pregunta-text">${pregunta.id}. ${pregunta.texto}</div>
-                </div>
-                <div class="opciones">
-                    <div class="opcion" data-value="cumple" data-pregunta="${pregunta.id}">
-                        <input type="radio" name="pregunta-${pregunta.id}" value="cumple" id="p${pregunta.id}-cumple">
-                        <label for="p${pregunta.id}-cumple">Cumple</label>
+            const container = document.getElementById('preguntas-container');
+            container.innerHTML = '';
+           
+            preguntasPorArea.forEach((pregunta, index) => {
+                const preguntaElement = document.createElement('div');
+                preguntaElement.className = 'pregunta-card';
+                preguntaElement.innerHTML = `
+                    <div class="pregunta-header">
+                        <div class="pregunta-text">${pregunta.id}. ${pregunta.texto}</div>
+                        <div class="categoria-pregunta">${pregunta.categoria}</div>
                     </div>
-                    <div class="opcion" data-value="parcial" data-pregunta="${pregunta.id}">
-                        <input type="radio" name="pregunta-${pregunta.id}" value="parcial" id="p${pregunta.id}-parcial">
-                        <label for="p${pregunta.id}-parcial">Cumple Parcial</label>
+                    <div class="opciones">
+                        <div class="opcion" data-value="cumple" data-pregunta="${pregunta.id}">
+                            <input type="radio" name="pregunta-${pregunta.id}" value="cumple" id="p${pregunta.id}-cumple">
+                            <label for="p${pregunta.id}-cumple">Cumple</label>
+                        </div>
+                        <div class="opcion" data-value="parcial" data-pregunta="${pregunta.id}">
+                            <input type="radio" name="pregunta-${pregunta.id}" value="parcial" id="p${pregunta.id}-parcial">
+                            <label for="p${pregunta.id}-parcial">Cumple Parcial</label>
+                        </div>
+                        <div class="opcion" data-value="no_cumple" data-pregunta="${pregunta.id}">
+                            <input type="radio" name="pregunta-${pregunta.id}" value="no_cumple" id="p${pregunta.id}-no_cumple">
+                            <label for="p${pregunta.id}-no_cumple">No Cumple</label>
+                        </div>
+                        <div class="opcion" data-value="no_aplica" data-pregunta="${pregunta.id}">
+                            <input type="radio" name="pregunta-${pregunta.id}" value="no_aplica" id="p${pregunta.id}-no_aplica">
+                            <label for="p${pregunta.id}-no_aplica">No Aplica</label>
+                        </div>
                     </div>
-                    <div class="opcion" data-value="no_cumple" data-pregunta="${pregunta.id}">
-                        <input type="radio" name="pregunta-${pregunta.id}" value="no_cumple" id="p${pregunta.id}-no_cumple">
-                        <label for="p${pregunta.id}-no_cumple">No Cumple</label>
+                    <div class="evidencia-section" id="evidencia-${pregunta.id}">
+                        <p><strong>Evidencia fotográfica requerida:</strong></p>
+                        <div class="camera-preview" id="camera-preview-${pregunta.id}">
+                            <i class="fas fa-camera"></i>
+                            <span>Haz clic para tomar foto</span>
+                        </div>
+                        <input type="file" accept="image/*" capture="environment" style="display: none;" id="camera-input-${pregunta.id}">
                     </div>
-                    <div class="opcion" data-value="no_aplica" data-pregunta="${pregunta.id}">
-                        <input type="radio" name="pregunta-${pregunta.id}" value="no_aplica" id="p${pregunta.id}-no_aplica">
-                        <label for="p${pregunta.id}-no_aplica">No Aplica</label>
+                    <div class="observaciones-section">
+                        <label for="observaciones-${pregunta.id}">Observaciones:</label>
+                        <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa observaciones relevantes"></textarea>
                     </div>
-                </div>
-                <div class="evidencia-section" id="evidencia-${pregunta.id}">
-                    <p><strong>Evidencia fotográfica o comentarios:</strong></p>
-                    <div class="camera-preview" id="camera-preview-${pregunta.id}">
-                        <i class="fas fa-camera"></i>
-                        <span>Haz clic para tomar foto (opcional)</span>
-                    </div>
-                    <input type="file" accept="image/*" capture="environment" style="display: none;" id="camera-input-${pregunta.id}">
-                    <div class="form-group">
-                        <label for="observaciones-${pregunta.id}">Comentarios:</label>
-                        <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa comentarios relevantes (obligatorio si no hay foto)"></textarea>
-                    </div>
-                </div>
-            `;
-                
+                `;
+                container.appendChild(preguntaElement);
                
                 const opciones = preguntaElement.querySelectorAll('.opcion');
                 opciones.forEach(opcion => {
@@ -2760,29 +2673,16 @@ for (const pregunta of preguntasPorArea) {
                         if (!respuestas[preguntaId]) respuestas[preguntaId] = {};
                         respuestas[preguntaId].estado = value;
                        
-                       // En la función generarPreguntas(), modificar la sección de evidencia:
-const evidenciaSection = document.createElement('div');
-evidenciaSection.className = 'evidencia-section';
-evidenciaSection.id = `evidencia-${pregunta.id}`;
-evidenciaSection.innerHTML = `
-    <p><strong>Evidencia fotográfica o comentarios:</strong></p>
-    <div class="camera-preview" id="camera-preview-${pregunta.id}">
-        <i class="fas fa-camera"></i>
-        <span>Haz clic para tomar foto (opcional)</span>
-    </div>
-    <input type="file" accept="image/*" capture="environment" style="display: none;" id="camera-input-${pregunta.id}">
-    <div class="form-group">
-        <label for="observaciones-${pregunta.id}">Comentarios:</label>
-        <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa comentarios relevantes (obligatorio si no hay foto)"></textarea>
-    </div>
-`;
+                        const evidenciaSection = document.getElementById(`evidencia-${preguntaId}`);
+                        if (value === 'parcial' || value === 'no_cumple') {
+                            evidenciaSection.style.display = 'block';
+                        } else {
+                            evidenciaSection.style.display = 'none';
+                        }
                        
                         opciones.forEach(o => o.classList.remove('selected'));
                         this.classList.add('selected');
-                        preguntasContainer.appendChild(preguntaElement);
-
                     });
-                    container.appendChild(categoriaSection);
                 });
                
                 const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
