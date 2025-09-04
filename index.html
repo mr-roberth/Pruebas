@@ -31,6 +31,21 @@
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             --transition: all 0.3s ease;
         }
+        .categoria-section {
+    margin-bottom: 30px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    background: #f9f9f9;
+}
+
+.categoria-title {
+    color: var(--primary);
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--secondary);
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+}
         
         * {
             margin: 0;
@@ -2218,17 +2233,17 @@ async function finalizarAuditoria() {
       }
     }
     
-    // Verificar evidencias para cumplimiento parcial y no cumplimiento
-    for (const pregunta of preguntasPorArea) {
-      const respuesta = respuestas[pregunta.id] || {};
-      if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && 
-          !respuesta.evidenciaUrl && !respuesta.observaciones) {
-        alert(`Para la pregunta ${pregunta.id} ("${pregunta.texto}"), debes adjuntar evidencia fotográfica o agregar observaciones para justificar el cumplimiento parcial o no cumplimiento.`);
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
-        return;
-      }
-    }
+  // Verificar evidencias para cumplimiento parcial y no cumplimiento
+for (const pregunta of preguntasPorArea) {
+  const respuesta = respuestas[pregunta.id] || {};
+  if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && 
+      !respuesta.evidenciaUrl && !respuesta.observaciones) {
+    alert(`Para la pregunta ${pregunta.id} ("${pregunta.texto}"), debes adjuntar evidencia fotográfica o agregar observaciones para justificar el cumplimiento parcial o no cumplimiento.`);
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
+    return;
+  }
+}
     
     // Preparar datos para enviar
     const preguntasData = [];
@@ -2687,7 +2702,7 @@ async function iniciarAuditoria() {
     showPage('auditoria');
 }
 
-        // Función para generar preguntas agrupadas por prerrequisito
+ // Función para generar preguntas agrupadas por prerrequisito
 function generarPreguntas() {
     const container = document.getElementById('preguntas-container');
     container.innerHTML = '';
@@ -2749,6 +2764,7 @@ function generarPreguntas() {
                 </div>
             `;
             categoriaElement.appendChild(preguntaElement);
+            
             
             // Event listeners para opciones
             const opciones = preguntaElement.querySelectorAll('.opcion');
