@@ -89,6 +89,64 @@
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
+        /* Estilos para categorías contraídas/expandidas */
+.categoria-section {
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 15px;
+    background: #f9f9f9;
+}
+
+.categoria-title {
+    color: var(--primary);
+    padding: 12px;
+    border-bottom: 2px solid var(--secondary);
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.categoria-title:hover {
+    background: #f0f0f0;
+}
+
+.categoria-title i {
+    transition: transform 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.categoria-content {
+    display: none;
+    padding-top: 10px;
+}
+
+.categoria-counter {
+    font-size: 0.9rem;
+    font-weight: normal;
+    margin-left: auto;
+    padding: 4px 8px;
+    background: #e9ecef;
+    border-radius: 12px;
+}
+
+/* Botón de Marcar todo como No Aplica */
+.btn-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+}
+
+.btn-info:hover {
+    background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
         .categoria-section {
     margin-bottom: 30px;
@@ -2317,42 +2375,24 @@ async function finalizarAuditoria() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
   
   try {
-    // Verificar que todas las preguntas obligatorias estén respondidas
-    const preguntasObligatorias = preguntasPorArea.filter(p => {
-      const respuesta = respuestas[p.id] || {};
-      return respuesta.estado !== 'no_aplica' && (!respuesta.estado || respuesta.estado === 'no_respondida');
-    });
+    const preguntasContestadas = Object.keys(respuestas).length;
+    if (preguntasContestadas < preguntasPorArea.length) {
+      if (!confirm('No has respondido todas las preguntas. ¿Estás seguro de que quieres finalizar la auditoría?')) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
+        return;
+      }
+    }
     
-    if (preguntasObligatorias.length > 0) {
-      if (!confirm(`Tienes ${preguntasObligatorias.length} preguntas sin responder. ¿Deseas marcarlas todas como "No aplica" antes de continuar?`)) {
-        // Si el usuario no quiere marcar como "No aplica", verificar si quiere continuar de todos modos
-        if (!confirm('¿Estás seguro de que quieres finalizar la auditoría con preguntas sin responder?')) {
-          btn.disabled = false;
-          btn.innerHTML = originalText;
-          return;
-        }
-      } else {
-        // Marcar todas las preguntas no respondidas como "No aplica"
-        preguntasObligatorias.forEach(pregunta => {
-          if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
-          respuestas[pregunta.id].estado = 'no_aplica';
-          
-          // Actualizar la interfaz
-          const opcion = document.querySelector(`input[name="pregunta-${pregunta.id}"][value="no_aplica"]`);
-          if (opcion) {
-            opcion.checked = true;
-            const opcionElement = opcion.closest('.opcion');
-            if (opcionElement) {
-              opcionElement.classList.add('selected');
-            }
-          }
-          
-          // Ocultar sección de evidencia
-          const evidenciaSection = document.getElementById(`evidencia-${pregunta.id}`);
-          if (evidenciaSection) {
-            evidenciaSection.style.display = 'none';
-          }
-        });
+    // Verificar evidencias para cumplimiento parcial y no cumplimiento
+    for (const pregunta of preguntasPorArea) {
+      const respuesta = respuestas[pregunta.id] || {};
+      if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && 
+          !respuesta.evidenciaUrl && !respuesta.observaciones) {
+        alert(`Para la pregunta ${pregunta.id} ("${pregunta.texto}"), debes adjuntar evidencia fotográfica o agregar observaciones para justificar el cumplimiento parcial o no cumplimiento.`);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
+        return;
       }
     }
     
@@ -2451,7 +2491,6 @@ async function finalizarAuditoria() {
     }
   } catch (error) {
     alert('Error al enviar la auditoría: ' + error.message);
-    console.error("Error en finalizarAuditoria:", error);
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
@@ -2828,16 +2867,16 @@ function generarPreguntas() {
         preguntasPorCategoria[pregunta.categoria].push(pregunta);
     });
     
-    // Crear secciones por categoría
+    // Crear secciones por categoría (contraídas por defecto)
     for (const categoria in preguntasPorCategoria) {
         const categoriaElement = document.createElement('div');
         categoriaElement.className = 'categoria-section';
         categoriaElement.innerHTML = `
             <h3 class="categoria-title" onclick="toggleCategoria(this)">
-                <i class="fas fa-chevron-down"></i> ${categoria}
+                <i class="fas fa-chevron-right"></i> ${categoria}
                 <span class="categoria-counter">(${preguntasPorCategoria[categoria].length} requisitos)</span>
             </h3>
-            <div class="categoria-content">
+            <div class="categoria-content" style="display: none;">
             </div>
         `;
         container.appendChild(categoriaElement);
@@ -2973,6 +3012,9 @@ function generarPreguntas() {
         // Inicializar contador de categoría
         actualizarContadorCategoria(categoria);
     }
+    
+    // Agregar botón "Marcar todo como No Aplica"
+    agregarBotonNoAplica();
 }
 
 // Función para expandir/contraer categorías
@@ -3862,6 +3904,107 @@ function marcarRestantesNoAplica() {
     }
     
     alert(`Se han marcado ${contador} preguntas como "No Aplica".`);
+}
+        // Función para agregar botón "Marcar todo como No Aplica"
+function agregarBotonNoAplica() {
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.marginBottom = '20px';
+    buttonContainer.style.textAlign = 'center';
+    
+    const button = document.createElement('button');
+    button.className = 'btn btn-info';
+    button.innerHTML = '<i class="fas fa-check-double"></i> Marcar preguntas restantes como "No Aplica"';
+    button.onclick = marcarRestantesNoAplica;
+    
+    buttonContainer.appendChild(button);
+    document.getElementById('preguntas-container').insertBefore(buttonContainer, document.getElementById('preguntas-container').firstChild);
+}
+
+// Función para marcar todas las preguntas restantes como "No Aplica"
+function marcarRestantesNoAplica() {
+    if (!confirm('¿Estás seguro de que deseas marcar todas las preguntas no respondidas como "No Aplica"? Esta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    let contador = 0;
+    
+    preguntasPorArea.forEach(pregunta => {
+        // Solo marcar si no tiene respuesta
+        if (!respuestas[pregunta.id] || !respuestas[pregunta.id].estado || respuestas[pregunta.id].estado === 'no_respondida') {
+            contador++;
+            
+            // Actualizar objeto de respuestas
+            if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
+            respuestas[pregunta.id].estado = 'no_aplica';
+            
+            // Actualizar interfaz
+            const radio = document.querySelector(`input[name="pregunta-${pregunta.id}"][value="no_aplica"]`);
+            if (radio) {
+                radio.checked = true;
+                
+                // Marcar visualmente la opción
+                const opcion = radio.closest('.opcion');
+                if (opcion) {
+                    // Remover selección de otras opciones
+                    opcion.parentElement.querySelectorAll('.opcion').forEach(o => o.classList.remove('selected'));
+                    // Seleccionar esta opción
+                    opcion.classList.add('selected');
+                }
+            }
+            
+            // Ocultar sección de evidencia
+            const evidenciaSection = document.getElementById(`evidencia-${pregunta.id}`);
+            if (evidenciaSection) {
+                evidenciaSection.style.display = 'none';
+            }
+        }
+    });
+    
+    // Actualizar contadores de categorías
+    Object.keys(preguntasPorCategoria).forEach(categoria => {
+        actualizarContadorCategoria(categoria);
+    });
+    
+    alert(`Se han marcado ${contador} preguntas como "No Aplica".`);
+}
+        // Función para expandir/contraer categorías
+function toggleCategoria(element) {
+    const content = element.nextElementSibling;
+    const icon = element.querySelector('i');
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.classList.remove('fa-chevron-right');
+        icon.classList.add('fa-chevron-down');
+    } else {
+        content.style.display = 'none';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-right');
+    }
+}
+
+// Función para actualizar contador de preguntas respondidas por categoría
+function actualizarContadorCategoria(categoria) {
+    const categoriaElements = document.querySelectorAll('.categoria-title');
+    categoriaElements.forEach(el => {
+        if (el.textContent.includes(categoria)) {
+            const preguntasCategoria = preguntasPorArea.filter(p => p.categoria === categoria);
+            const respondidas = preguntasCategoria.filter(p => respuestas[p.id] && respuestas[p.id].estado && respuestas[p.id].estado !== 'no_respondida').length;
+            
+            const counter = el.querySelector('.categoria-counter');
+            if (counter) {
+                counter.textContent = `(${respondidas}/${preguntasCategoria.length} respondidos)`;
+                
+                // Cambiar color según el progreso
+                if (respondidas === preguntasCategoria.length) {
+                    counter.style.color = 'var(--success)';
+                } else if (respondidas > 0) {
+                    counter.style.color = 'var(--warning)';
+                } else {
+                    counter.style.color = 'var(--text-light)';
+                }
+            }
+        }
+    });
 }
 </script>
 </body>
