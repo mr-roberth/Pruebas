@@ -31,6 +31,40 @@
             --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             --transition: all 0.3s ease;
         }
+
+        .categoria-section {
+    margin-bottom: 30px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    background: #f9f9f9;
+}
+
+.categoria-title {
+    color: var(--primary);
+    padding: 10px;
+    border-bottom: 2px solid var(--secondary);
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.categoria-title i {
+    transition: transform 0.3s ease;
+}
+
+.categoria-content {
+    display: block;
+}
+
+.categoria-counter {
+    font-size: 0.9rem;
+    font-weight: normal;
+    margin-left: auto;
+}
         .categoria-section {
     margin-bottom: 30px;
     border: 1px solid var(--border);
@@ -2702,7 +2736,7 @@ async function iniciarAuditoria() {
     showPage('auditoria');
 }
 
- // Función para generar preguntas agrupadas por prerrequisito
+// Función para generar preguntas agrupadas por prerrequisito - VERSIÓN MEJORADA
 function generarPreguntas() {
     const container = document.getElementById('preguntas-container');
     container.innerHTML = '';
@@ -2721,9 +2755,16 @@ function generarPreguntas() {
         const categoriaElement = document.createElement('div');
         categoriaElement.className = 'categoria-section';
         categoriaElement.innerHTML = `
-            <h3 class="categoria-title">${categoria}</h3>
+            <h3 class="categoria-title" onclick="toggleCategoria(this)">
+                <i class="fas fa-chevron-down"></i> ${categoria}
+                <span class="categoria-counter">(${preguntasPorCategoria[categoria].length} requisitos)</span>
+            </h3>
+            <div class="categoria-content">
+            </div>
         `;
         container.appendChild(categoriaElement);
+        
+        const contentDiv = categoriaElement.querySelector('.categoria-content');
         
         preguntasPorCategoria[categoria].forEach((pregunta, index) => {
             const preguntaElement = document.createElement('div');
@@ -2763,8 +2804,7 @@ function generarPreguntas() {
                     <textarea id="observaciones-${pregunta.id}" placeholder="Ingresa observaciones relevantes"></textarea>
                 </div>
             `;
-            categoriaElement.appendChild(preguntaElement);
-            
+            contentDiv.appendChild(preguntaElement);
             
             // Event listeners para opciones
             const opciones = preguntaElement.querySelectorAll('.opcion');
@@ -2785,6 +2825,9 @@ function generarPreguntas() {
                     
                     opciones.forEach(o => o.classList.remove('selected'));
                     this.classList.add('selected');
+                    
+                    // Actualizar contador de la categoría
+                    actualizarContadorCategoria(categoria);
                 });
             });
             
@@ -2810,7 +2853,7 @@ function generarPreguntas() {
                         
                         if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
                         respuestas[currentPreguntaId].evidenciaUrl = compressedImg;
-                        respuestas[currentPreguntaId].evidenciaBase64 = compressedImg; // Guardar base64 para guardar progreso
+                        respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
                     };
                     
                     reader.readAsDataURL(file);
@@ -2848,7 +2891,50 @@ function generarPreguntas() {
                 }
             }
         });
+        
+        // Inicializar contador de categoría
+        actualizarContadorCategoria(categoria);
+    }
 }
+
+// Función para expandir/contraer categorías
+function toggleCategoria(element) {
+    const content = element.nextElementSibling;
+    const icon = element.querySelector('i');
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.classList.remove('fa-chevron-right');
+        icon.classList.add('fa-chevron-down');
+    } else {
+        content.style.display = 'none';
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-right');
+    }
+}
+
+// Función para actualizar contador de preguntas respondidas por categoría
+function actualizarContadorCategoria(categoria) {
+    const categoriaElements = document.querySelectorAll('.categoria-title');
+    categoriaElements.forEach(el => {
+        if (el.textContent.includes(categoria)) {
+            const preguntasCategoria = preguntasPorArea.filter(p => p.categoria === categoria);
+            const respondidas = preguntasCategoria.filter(p => respuestas[p.id] && respuestas[p.id].estado).length;
+            
+            const counter = el.querySelector('.categoria-counter');
+            if (counter) {
+                counter.textContent = `(${respondidas}/${preguntasCategoria.length} respondidos)`;
+                
+                // Cambiar color según el progreso
+                if (respondidas === preguntasCategoria.length) {
+                    counter.style.color = 'var(--success)';
+                } else if (respondidas > 0) {
+                    counter.style.color = 'var(--warning)';
+                } else {
+                    counter.style.color = 'var(--text-light)';
+                }
+            }
+        }
+    });
 }
 
         // Función para comprimir imágenes
