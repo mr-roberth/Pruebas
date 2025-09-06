@@ -2200,13 +2200,14 @@ async function syncOfflineData() {
     }
 }
 
-        // Función para visualizar PDF
+// Función para visualizar PDF
 function mostrarPDF(url) {
     const viewer = document.getElementById('pdf-viewer');
     const container = document.getElementById('pdf-viewer-container');
     
     if (url) {
-        viewer.src = url;
+        // Usar el visor de Google directamente
+        viewer.src = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
         container.style.display = 'block';
     } else {
         container.style.display = 'none';
