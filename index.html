@@ -2965,14 +2965,39 @@ function generarPreguntas() {
                     const reader = new FileReader();
                     
                     reader.onload = async function(event) {
-                        const compressedImg = await compressImage(file);
-                        
-                        cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
-                        
-                        if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
-                        respuestas[currentPreguntaId].evidenciaUrl = compressedImg;
-                        respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
-                    };
+  const compressedImg = await compressImage(file);
+  
+  cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
+  
+  // Subir imagen al servidor y obtener URLs
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: "uploadImage",
+        image: compressedImg
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.status === "success") {
+      if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
+      respuestas[currentPreguntaId].evidenciaUrl = data.directUrl; // URL directa para PDF
+      respuestas[currentPreguntaId].evidenciaThumbnail = data.url; // Miniatura para la app
+      respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
+    } else {
+      throw new Error(data.message);
+    }
+  } catch (error) {
+    console.error("Error subiendo imagen:", error);
+    alert("Error al subir la imagen. La evidencia no se guardará correctamente.");
+    
+    // Guardar al menos la base64 como respaldo
+    if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
+    respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
+  }
+};
                     
                     reader.readAsDataURL(file);
                 }
