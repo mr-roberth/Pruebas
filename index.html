@@ -2202,16 +2202,23 @@ async function syncOfflineData() {
 
 // Función para visualizar PDF
 function mostrarPDF(url) {
-    const viewer = document.getElementById('pdf-viewer');
-    const container = document.getElementById('pdf-viewer-container');
+  const viewer = document.getElementById('pdf-viewer');
+  const container = document.getElementById('pdf-viewer-container');
+  
+  if (url) {
+    // Usar el visor de Google directamente
+    viewer.src = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+    container.style.display = 'block';
     
-    if (url) {
-        // Usar el visor de Google directamente
-        viewer.src = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
-        container.style.display = 'block';
-    } else {
-        container.style.display = 'none';
-    }
+    // Forzar recarga si es necesario
+    setTimeout(() => {
+      if (viewer.contentWindow.document.body.innerHTML === "") {
+        viewer.src = viewer.src;
+      }
+    }, 1000);
+  } else {
+    container.style.display = 'none';
+  }
 }
 
         // Función para descargar PDF
@@ -2475,7 +2482,7 @@ async function finalizarAuditoria() {
         // Pequeño retraso para asegurar que el PDF esté disponible
         setTimeout(() => {
           mostrarPDF(data.pdfUrl);
-        }, 2000);
+        }, 3000); // Aumentado a 3 segundos para dar más tiempo
       }
       
       generarDetalleReporte();
