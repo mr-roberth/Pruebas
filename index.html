@@ -2374,7 +2374,6 @@ async function cargarDashboard() {
         content.style.opacity = '1';
     }
 }
-
 // Función para finalizar auditoría - VERSIÓN CORREGIDA
 async function finalizarAuditoria() {
   const btn = document.getElementById('finalizar-auditoria');
@@ -2415,11 +2414,12 @@ async function finalizarAuditoria() {
         categoria: pregunta.categoria,
         estado: respuesta.estado || "no_respondida",
         evidenciaUrl: respuesta.evidenciaUrl || null,
+        evidenciaDirectUrl: respuesta.evidenciaDirectUrl || null, // Nueva propiedad para URL directa
         observaciones: respuesta.observaciones || ""
       });
     });
     
-    // Calcular porcentajes (excluyendo "No aplica")
+    // Calcular porcentajes (excluyendo "No Aplica")
     const totalPreguntas = preguntasData.length;
     const noAplicaCount = preguntasData.filter(p => p.estado === "no_aplica").length;
     const totalPreguntasAplicables = totalPreguntas - noAplicaCount;
@@ -2482,7 +2482,7 @@ async function finalizarAuditoria() {
         // Pequeño retraso para asegurar que el PDF esté disponible
         setTimeout(() => {
           mostrarPDF(data.pdfUrl);
-        }, 3000); // Aumentado a 3 segundos para dar más tiempo
+        }, 5000); // Aumentado a 5 segundos para dar más tiempo
       }
       
       generarDetalleReporte();
@@ -2966,49 +2966,49 @@ function generarPreguntas() {
             
             const currentPreguntaId = pregunta.id;
             
-            cameraInput.addEventListener('change', async function(e) {
-                if (e.target.files && e.target.files[0]) {
-                    const file = e.target.files[0];
-                    const reader = new FileReader();
-                    
-                    reader.onload = async function(event) {
-  const compressedImg = await compressImage(file);
-  
-  cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
-  
-  // Subir imagen al servidor y obtener URLs
-  try {
-    const response = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: "uploadImage",
-        image: compressedImg
-      })
-    });
+cameraInput.addEventListener('change', async function(e) {
+  if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+    const reader = new FileReader();
     
-    const data = await response.json();
+    reader.onload = async function(event) {
+      const compressedImg = await compressImage(file);
+      
+      cameraPreview.innerHTML = `<img src="${compressedImg}" alt="Evidencia fotográfica">`;
+      
+      // Subir imagen al servidor y obtener URLs
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: "uploadImage",
+            image: compressedImg
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === "success") {
+          if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
+          respuestas[currentPreguntaId].evidenciaUrl = data.url; // URL de vista previa para la app
+          respuestas[currentPreguntaId].evidenciaDirectUrl = data.directUrl; // URL directa para PDF
+          respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
+        } else {
+          throw new Error(data.message);
+        }
+      } catch (error) {
+        console.error("Error subiendo imagen:", error);
+        alert("Error al subir la imagen. La evidencia no se guardará correctamente.");
+        
+        // Guardar al menos la base64 como respaldo
+        if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
+        respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
+      }
+    };
     
-    if (data.status === "success") {
-      if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
-      respuestas[currentPreguntaId].evidenciaUrl = data.directUrl; // URL directa para PDF
-      respuestas[currentPreguntaId].evidenciaThumbnail = data.url; // Miniatura para la app
-      respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
-    } else {
-      throw new Error(data.message);
-    }
-  } catch (error) {
-    console.error("Error subiendo imagen:", error);
-    alert("Error al subir la imagen. La evidencia no se guardará correctamente.");
-    
-    // Guardar al menos la base64 como respaldo
-    if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
-    respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
+    reader.readAsDataURL(file);
   }
-};
-                    
-                    reader.readAsDataURL(file);
-                }
-            });
+});
             
             // Event listener para observaciones
             document.getElementById(`observaciones-${pregunta.id}`).addEventListener('input', function(e) {
