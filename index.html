@@ -2206,26 +2206,20 @@ function mostrarPDF(url) {
   const container = document.getElementById('pdf-viewer-container');
   
   if (url) {
-    // Usar el visor de Google directamente
-    viewer.src = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+    // Usar la URL de visualización directamente
+    viewer.src = url;
     container.style.display = 'block';
-    
-    // Forzar recarga si es necesario
-    setTimeout(() => {
-      if (viewer.contentWindow.document.body.innerHTML === "") {
-        viewer.src = viewer.src;
-      }
-    }, 1000);
   } else {
     container.style.display = 'none';
   }
 }
 
-    // Función para descargar PDF
+// Función para descargar PDF
 function generarPDF() {
     const pdfUrl = document.getElementById('reporte-pdf-url').value;
     if (pdfUrl) {
-        const downloadUrl = pdfUrl.replace('/preview', '?export=download');
+        // Convertir URL de visualización a URL de descarga
+        const downloadUrl = pdfUrl.replace('/view', '?export=download');
         window.open(downloadUrl, '_blank');
     } else {
         alert('El PDF aún no está disponible. Por favor intente nuevamente en unos momentos.');
@@ -2965,8 +2959,7 @@ function generarPreguntas() {
             });
             
             const currentPreguntaId = pregunta.id;
-            
-cameraInput.addEventListener('change', async function(e) {
+            cameraInput.addEventListener('change', async function(e) {
   if (e.target.files && e.target.files[0]) {
     const file = e.target.files[0];
     const reader = new FileReader();
