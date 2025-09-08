@@ -2209,13 +2209,20 @@ function mostrarPDF(url) {
     // Usar la URL de visualización directamente
     viewer.src = url;
     container.style.display = 'block';
+    
+    // Forzar recarga si es necesario
+    setTimeout(() => {
+      if (viewer.contentWindow.document.body.innerHTML === "") {
+        viewer.src = viewer.src;
+      }
+    }, 2000);
   } else {
     container.style.display = 'none';
   }
 }
 
 // Función para descargar PDF
-function generarPDF() {
+function descargarPDF() {
     const pdfUrl = document.getElementById('reporte-pdf-url').value;
     if (pdfUrl) {
         // Convertir URL de visualización a URL de descarga
