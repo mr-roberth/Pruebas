@@ -1696,28 +1696,28 @@
                                 <p>Este reporte fue generado automáticamente por el Sistema de Auditoría PPR ISO / TS 22002-1-2009</p>
                             </div>
                         </div>
-                        
                         <!-- Visor de PDF mejorado -->
-                        <div id="pdf-viewer-container">
-                            <iframe id="pdf-viewer" src="" frameborder="0"></iframe>
-                        </div>
-                        
-                        <input type="hidden" id="reporte-pdf-url">
-                        
-                        <div class="button-group">
-                            <button class="btn btn-primary" id="generar-pdf">
-                                <i class="fas fa-file-download"></i> Descargar PDF
-                            </button>
-                            <button class="btn btn-secondary" id="ver-pdf">
-                                <i class="fas fa-eye"></i> Ver PDF
-                            </button>
-                            <button class="btn btn-success" id="compartir-whatsapp">
-                                <i class="fab fa-whatsapp"></i> Compartir por WhatsApp
-                            </button>
-                            <button class="btn btn-danger" id="compartir-email">
-                                <i class="fas fa-envelope"></i> Enviar por Correo
-                            </button>
-                        </div>
+<div id="pdf-viewer-container" style="height: 80vh; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin: 25px 0; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); display: none;">
+  <iframe id="pdf-viewer" src="" frameborder="0" style="width: 100%; height: 100%;"></iframe>
+</div>
+
+<input type="hidden" id="reporte-pdf-url">
+<input type="hidden" id="reporte-pdf-download-url">
+
+<div class="button-group">
+  <button class="btn btn-primary" onclick="descargarPDF(document.getElementById('reporte-pdf-download-url').value)">
+    <i class="fas fa-file-download"></i> Descargar PDF
+  </button>
+  <button class="btn btn-secondary" onclick="mostrarPDF(document.getElementById('reporte-pdf-url').value)">
+    <i class="fas fa-eye"></i> Ver PDF
+  </button>
+  <button class="btn btn-success" id="compartir-whatsapp">
+    <i class="fab fa-whatsapp"></i> Compartir por WhatsApp
+  </button>
+  <button class="btn btn-danger" id="compartir-email">
+    <i class="fas fa-envelope"></i> Enviar por Correo
+  </button>
+</div>
                     </div>
                 </div>
             </section>
@@ -1783,8 +1783,7 @@
                             <option value="ingenio_san_pedro">Ingenio San Pedro</option>
                             <option value="ingenio_santa_clara">Ingenio Santa Clara</option>
                             <option value="dulcinea_chiapas">Dulcinea - Chiapas</option>
-                            <option value="dulcinea_michoacan">Dulcinea Michoacán</option>
-                            <option value="cafetalera_cordoba">Cafetalera - Cordoba</option>
+                            <option value="dulcinea_michoacan">Dulcinea Michoacán</option
                         </select>
                     </div>
                     
@@ -2200,14 +2199,27 @@ async function syncOfflineData() {
     }
 }
 
-// Función para visualizar PDF
+// Función para visualizar PDF - VERSIÓN MEJORADA
 function mostrarPDF(url) {
   const viewer = document.getElementById('pdf-viewer');
   const container = document.getElementById('pdf-viewer-container');
   
   if (url) {
-    // Usar el visor de Google directamente
-    viewer.src = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
+    // Convertir URL de descarga a URL de visualización si es necesario
+    let viewUrl = url;
+    if (url.includes('export=download')) {
+      const fileId = url.match(/[-\w]{25,}/);
+      if (fileId) {
+        viewUrl = `https://drive.google.com/file/d/${fileId[0]}/preview`;
+      }
+    } else if (url.includes('/uc?id=')) {
+      const fileId = url.match(/[-\w]{25,}/);
+      if (fileId) {
+        viewUrl = `https://drive.google.com/file/d/${fileId[0]}/preview`;
+      }
+    }
+    
+    viewer.src = viewUrl;
     container.style.display = 'block';
     
     // Forzar recarga si es necesario
@@ -2218,6 +2230,24 @@ function mostrarPDF(url) {
     }, 1000);
   } else {
     container.style.display = 'none';
+  }
+}
+
+// Función para descargar PDF
+function descargarPDF(url) {
+  if (url) {
+    // Si es URL de visualización, convertir a URL de descarga
+    let downloadUrl = url;
+    if (url.includes('/file/d/')) {
+      const fileId = url.match(/[-\w]{25,}/);
+      if (fileId) {
+        downloadUrl = `https://drive.google.com/uc?id=${fileId[0]}&export=download`;
+      }
+    }
+    
+    window.open(downloadUrl, '_blank');
+  } else {
+    alert('El PDF aún no está disponible. Por favor intente nuevamente en unos momentos.');
   }
 }
         
@@ -2384,6 +2414,7 @@ async function finalizarAuditoria() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
   
   try {
+    // [
     const preguntasContestadas = Object.keys(respuestas).length;
     if (preguntasContestadas < preguntasPorArea.length) {
       if (!confirm('No has respondido todas las preguntas. ¿Estás seguro de que quieres finalizar la auditoría?')) {
@@ -2479,11 +2510,12 @@ async function finalizarAuditoria() {
       
       if (data.pdfUrl) {
         document.getElementById('reporte-pdf-url').value = data.pdfUrl;
+        document.getElementById('reporte-pdf-download-url').value = data.pdfDownloadUrl || data.pdfUrl;
         
         // Pequeño retraso para asegurar que el PDF esté disponible
         setTimeout(() => {
           mostrarPDF(data.pdfUrl);
-        }, 3000); // Aumentado a 3 segundos para dar más tiempo
+        }, 3000);
       }
       
       generarDetalleReporte();
