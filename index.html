@@ -2991,7 +2991,7 @@ function generarPreguntas() {
     
     if (data.status === "success") {
       if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
-      respuestas[currentPreguntaId].evidenciaUrl = data.directUrl; // URL directa para PDF
+      respuestas[currentPreguntaId].evidenciaUrl = data.directUrl || data.url; // URL directa para PDF
       respuestas[currentPreguntaId].evidenciaThumbnail = data.url; // Miniatura para la app
       respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
     } else {
