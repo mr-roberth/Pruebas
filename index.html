@@ -2989,12 +2989,14 @@ function generarPreguntas() {
     
     const data = await response.json();
     
-    if (data.status === "success") {
-      if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
-      respuestas[currentPreguntaId].evidenciaUrl = data.directUrl || data.url; // URL directa para PDF
-      respuestas[currentPreguntaId].evidenciaThumbnail = data.url; // Miniatura para la app
-      respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
-    } else {
+    // En el event listener de la cámara, cambia:
+if (data.status === "success") {
+    if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
+    respuestas[currentPreguntaId].evidenciaUrl = data.directUrl; // URL directa para PDF
+    respuestas[currentPreguntaId].evidenciaThumbnail = data.url; // Miniatura para la app
+    respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
+    respuestas[currentPreguntaId].fileId = data.fileId; // Guardar también el ID del archivo
+} else {
       throw new Error(data.message);
     }
   } catch (error) {
