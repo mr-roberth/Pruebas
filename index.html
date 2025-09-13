@@ -2992,10 +2992,9 @@ function generarPreguntas() {
     // En el event listener de la cámara, cambia:
 if (data.status === "success") {
     if (!respuestas[currentPreguntaId]) respuestas[currentPreguntaId] = {};
-    respuestas[currentPreguntaId].evidenciaUrl = data.directUrl; // URL directa para PDF
-    respuestas[currentPreguntaId].evidenciaThumbnail = data.url; // Miniatura para la app
-    respuestas[currentPreguntaId].evidenciaBase64 = compressedImg;
-    respuestas[currentPreguntaId].fileId = data.fileId; // Guardar también el ID del archivo
+    respuestas[currentPreguntaId].evidenciaUrl = data.url; // Usar la URL directa del servidor
+    respuestas[currentPreguntaId].fileId = data.fileId;
+    respuestas[currentPreguntaId].evidenciaBase64 = compressedImg; // Guardar como respaldo
 } else {
       throw new Error(data.message);
     }
