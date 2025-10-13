@@ -2583,77 +2583,126 @@ async function cargarAuditoriasGuardadas() {
     }
 }
 
+// FUNCIÓN MEJORADA - PEGAR EN EL FRONTEND
 async function cargarAuditoriaGuardada(auditId) {
-    try {
-        const transaction = db.transaction([STORE_AUDITS], "readonly");
-        const store = transaction.objectStore(STORE_AUDITS);
-        const request = store.get(Number(auditId));
-        
-        request.onsuccess = (event) => {
-            const audit = event.target.result;
-            if (!audit) throw new Error("Auditoría no encontrada");
+  try {
+    const transaction = db.transaction([STORE_AUDITS], "readonly");
+    const store = transaction.objectStore(STORE_AUDITS);
+    const request = store.get(Number(auditId));
+    
+    request.onsuccess = async (event) => {
+      const audit = event.target.result;
+      if (!audit) {
+        alert("Auditoría no encontrada");
+        return;
+      }
+      
+      // Cargar datos en las variables globales
+      auditorData = audit.auditorData;
+      respuestas = audit.respuestas || {};
+      preguntasPorArea = audit.preguntasPorArea || [];
+      
+      // MEJORA: Si no hay preguntas, cargarlas del área
+      if (preguntasPorArea.length === 0 && auditorData.area) {
+        try {
+          const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+              action: "getPreguntasPorArea",
+              area: auditorData.area
+            })
+          });
+          
+          const data = await response.json();
+          
+          if (data.status === "success") {
+            preguntasPorArea = data.preguntas;
+            // Guardar las preguntas en la auditoría local
+            await actualizarPreguntasEnAuditoria(auditId, data.preguntas);
+          }
+        } catch (error) {
+          console.error("Error cargando preguntas:", error);
+        }
+      }
+      
+      // Actualizar UI
+      document.getElementById('current-auditor').textContent = auditorData.nombre;
+      document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
+      document.getElementById('current-area').textContent = formatName(auditorData.area);
+      document.getElementById('current-date').textContent = auditorData.fecha;
+      
+      // Generar preguntas con respuestas cargadas
+      generarPreguntas();
+      
+      // Para cada pregunta, cargar la respuesta guardada
+      setTimeout(() => {
+        preguntasPorArea.forEach(pregunta => {
+          const respuesta = respuestas[pregunta.id];
+          if (respuesta) {
+            // Marcar el radio button
+            const radio = document.querySelector(`input[name="pregunta-${pregunta.id}"][value="${respuesta.estado}"]`);
+            if (radio) {
+              radio.checked = true;
+              const opcion = radio.closest('.opcion');
+              if (opcion) {
+                opcion.classList.add('selected');
+              }
+            }
             
-            // Cargar datos en las variables globales
-            auditorData = audit.auditorData;
-            respuestas = audit.respuestas;
-            preguntasPorArea = audit.preguntasPorArea;
+            // Cargar evidencia si existe
+            if (respuesta.evidenciaBase64 || respuesta.evidenciaUrl) {
+              const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
+              if (cameraPreview) {
+                const imgSrc = respuesta.evidenciaBase64 || respuesta.evidenciaUrl;
+                cameraPreview.innerHTML = `<img src="${imgSrc}" alt="Evidencia fotográfica">`;
+              }
+            }
             
-            // Actualizar UI
-            document.getElementById('current-auditor').textContent = auditorData.nombre;
-            document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
-            document.getElementById('current-area').textContent = formatName(auditorData.area);
-            document.getElementById('current-date').textContent = auditorData.fecha;
+            // Cargar observaciones
+            const observaciones = document.getElementById(`observaciones-${pregunta.id}`);
+            if (observaciones && respuesta.observaciones) {
+              observaciones.value = respuesta.observaciones;
+            }
             
-            // Generar preguntas con respuestas cargadas
-            generarPreguntas();
-            
-            // Para cada pregunta, si hay una respuesta, marcar el radio y cargar la imagen/observaciones
-            preguntasPorArea.forEach(pregunta => {
-                const respuesta = respuestas[pregunta.id];
-                if (respuesta) {
-                    // Marcar el radio button
-                    const radio = document.querySelector(`input[name="pregunta-${pregunta.id}"][value="${respuesta.estado}"]`);
-                    if (radio) {
-                        radio.checked = true;
-                        // También marcar visualmente la opción
-                        const opcion = radio.closest('.opcion');
-                        if (opcion) {
-                            opcion.classList.add('selected');
-                        }
-                    }
-                    
-                    // Mostrar evidencia si existe
-                    if (respuesta.evidenciaBase64 || respuesta.evidenciaUrl) {
-                        const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
-                        if (cameraPreview) {
-                            const imgSrc = respuesta.evidenciaBase64 || respuesta.evidenciaUrl;
-                            cameraPreview.innerHTML = `<img src="${imgSrc}" alt="Evidencia fotográfica">`;
-                        }
-                    }
-                    
-                    // Cargar observaciones
-                    const observaciones = document.getElementById(`observaciones-${pregunta.id}`);
-                    if (observaciones && respuesta.observaciones) {
-                        observaciones.value = respuesta.observaciones;
-                    }
-                    
-                    // Mostrar sección de evidencia si es necesario
-                    if (respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') {
-                        const evidenciaSection = document.getElementById(`evidencia-${pregunta.id}`);
-                        if (evidenciaSection) {
-                            evidenciaSection.style.display = 'block';
-                        }
-                    }
-                }
-            });
-            
-            // Mostrar sección de auditoría
-            showPage('auditoria');
-        };
-        
-    } catch (error) {
-        alert('Error al cargar auditoría: ' + error.message);
-    }
+            // Mostrar sección de evidencia si es necesario
+            if (respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') {
+              const evidenciaSection = document.getElementById(`evidencia-${pregunta.id}`);
+              if (evidenciaSection) {
+                evidenciaSection.style.display = 'block';
+              }
+            }
+          }
+        });
+      }, 500);
+      
+      // Mostrar sección de auditoría
+      showPage('auditoria');
+    };
+    
+  } catch (error) {
+    alert('Error al cargar auditoría: ' + error.message);
+  }
+}
+
+// FUNCIÓN AUXILIAR - AGREGAR AL FRONTEND
+async function actualizarPreguntasEnAuditoria(auditId, preguntas) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_AUDITS], "readwrite");
+    const store = transaction.objectStore(STORE_AUDITS);
+    const request = store.get(Number(auditId));
+    
+    request.onsuccess = (event) => {
+      const audit = event.target.result;
+      if (audit) {
+        audit.preguntasPorArea = preguntas;
+        const updateRequest = store.put(audit);
+        updateRequest.onsuccess = () => resolve();
+        updateRequest.onerror = (e) => reject(e.target.error);
+      }
+    };
+    
+    request.onerror = (event) => reject(event.target.error);
+  });
 }
 
         // Login
@@ -3114,48 +3163,119 @@ function compressImage(file, quality = 0.7) {
 }
 
         // Generar detalle para el reporte PDF
-function generarDetalleReporte() {
-    const detalle = document.getElementById('reporte-detalle');
-    detalle.innerHTML = '';
+// FUNCIÓN MEJORADA - PEGAR EN EL FRONTEND
+async function cargarDetalleReporte(reporteId) {
+  const reporte = reportesData.find(r => r.id === reporteId);
+  if (!reporte) return;
+  
+  document.querySelectorAll('.reporte-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  document.querySelector(`.reporte-item[data-id="${reporteId}"]`).classList.add('active');
+  
+  document.getElementById('reporte-auditor').textContent = reporte.auditor;
+  document.getElementById('reporte-unidad').textContent = reporte.unidad;
+  document.getElementById('reporte-area').textContent = reporte.area;
+  document.getElementById('reporte-fecha').textContent = reporte.fecha;
+  document.getElementById('reporte-hora').textContent = reporte.hora || '';
+  
+  try {
+    const response = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: "getAuditDetails",
+        auditId: reporteId
+      })
+    });
     
-    preguntasPorArea.forEach(pregunta => {
-        const respuesta = respuestas[pregunta.id] || {};
-        
+    const data = await response.json();
+    
+    if (data.status === "success") {
+      // FILTRAR: Excluir preguntas marcadas como "no_aplica"
+      const preguntasAplicables = data.preguntas.filter(p => p.estado !== 'no_aplica');
+      const totalAplicables = preguntasAplicables.length;
+      
+      // Calcular porcentajes EXCLUYENDO "no_aplica"
+      const cumpleCount = preguntasAplicables.filter(p => p.estado === 'cumple').length;
+      const parcialCount = preguntasAplicables.filter(p => p.estado === 'parcial').length;
+      const noCumpleCount = preguntasAplicables.filter(p => p.estado === 'no_cumple').length;
+      
+      // Calcular porcentajes solo si hay preguntas aplicables
+      let porcCumple = 0;
+      let porcParcial = 0;
+      let porcNoCumple = 0;
+      
+      if (totalAplicables > 0) {
+        porcCumple = Math.round((cumpleCount / totalAplicables) * 100);
+        porcParcial = Math.round((parcialCount / totalAplicables) * 100);
+        porcNoCumple = Math.round((noCumpleCount / totalAplicables) * 100);
+      }
+      
+      // Actualizar UI con porcentajes CORREGIDOS
+      document.getElementById('reporte-cumple').textContent = porcCumple + '%';
+      document.getElementById('reporte-parcial').textContent = porcParcial + '%';
+      document.getElementById('reporte-no-cumple').textContent = porcNoCumple + '%';
+      document.getElementById('reporte-no-aplica').textContent = '0%';
+      
+      // Calcular resultado general basado solo en aplicables
+      let resultado = "Cumplimiento Total";
+      let color = "#27ae60";
+      
+      if (porcNoCumple > 10) {
+        resultado = "No Cumple";
+        color = "#e74c3c";
+      } else if (porcNoCumple > 0 || porcParcial > 20) {
+        resultado = "Cumplimiento Parcial";
+        color = "#f39c12";
+      }
+      
+      document.getElementById('reporte-resultado').textContent = resultado;
+      document.getElementById('reporte-resultado').style.color = color;
+      
+      const detalle = document.getElementById('reporte-detalle');
+      detalle.innerHTML = '';
+      
+      // Mostrar solo preguntas APLICABLES (excluyendo no_aplica)
+      preguntasAplicables.forEach(pregunta => {
         let estadoText, estadoColor;
         
-        switch(respuesta.estado) {
-        case 'cumple':
+        switch(pregunta.estado) {
+          case 'cumple':
             estadoText = 'Cumple';
             estadoColor = 'green';
             break;
-        case 'parcial':
+          case 'parcial':
             estadoText = 'Cumple Parcial';
             estadoColor = 'orange';
             break;
-        case 'no_cumple':
+          case 'no_cumple':
             estadoText = 'No Cumple';
             estadoColor = 'red';
             break;
-        case 'no_aplica':
-            estadoText = 'No Aplica';
-            estadoColor = '#9b59b6';
-            break;
-        default:
-            estadoText = 'No respondida';
-            estadoColor = 'gray';
+          default:
+            return;
         }
         
-        const tieneEvidencia = respuesta.evidenciaUrl ? 'Sí' : 'No';
+        const tieneEvidencia = pregunta.evidenciaUrl ? 'Sí' : 'No';
         
         const row = document.createElement('tr');
         row.innerHTML = `
-                    <td style="padding: 10px;">${pregunta.texto}</td>
-                    <td style="padding: 10px; text-align: center; color: ${estadoColor};">${estadoText}</td>
-                    <td style="padding: 10px; text-align: center;">${tieneEvidencia}</td>
-                    <td style="padding: 10px;">${respuesta.observaciones || ''}</td>
+          <td style="padding: 10px;">${pregunta.texto}</td>
+          <td style="padding: 10px; text-align: center; color: ${estadoColor}; font-weight: bold;">${estadoText}</td>
+          <td style="padding: 10px; text-align: center;">${tieneEvidencia}</td>
+          <td style="padding: 10px;">${pregunta.observaciones || ''}</td>
         `;
         detalle.appendChild(row);
-    });
+      });
+      
+      document.getElementById('detalle-reporte').style.display = 'block';
+    } else {
+      throw new Error(data.message || "Error al obtener detalles");
+    }
+  } catch (error) {
+    alert('Error al cargar detalles: ' + error.message);
+    document.getElementById('detalle-reporte').style.display = 'none';
+  }
 }
 
         // Inicializar gráficos
