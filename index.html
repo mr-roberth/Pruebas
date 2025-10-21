@@ -1872,196 +1872,504 @@
         const STORE_AUDITS = "auditorias";
         
         // Inicialización
-        document.addEventListener('DOMContentLoaded', async function() {
-
-            // AGREGAR EN LA SECCIÓN DE INICIALIZACIÓN DEL FRONTEND
-function inicializarReportes() {
-  console.log("🚀 Inicializando módulo de reportes...");
-  
-  // Establecer fechas por defecto (últimos 90 días)
-  const today = new Date();
-  const defaultStart = new Date();
-  defaultStart.setDate(today.getDate() - 90);
-  
-  const fechaInicioInput = document.getElementById('filtro-fecha-inicio-reporte');
-  const fechaFinInput = document.getElementById('filtro-fecha-fin-reporte');
-  
-  if (fechaInicioInput && fechaFinInput) {
-    fechaInicioInput.valueAsDate = defaultStart;
-    fechaFinInput.valueAsDate = today;
+       // FUNCIÓN DOMContentLoaded COMPLETA MEJORADA CON PERSISTENCIA DE SESIÓN
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🚀 Inicializando aplicación de Auditoría PPR...');
     
-    console.log("📅 Fechas inicializadas:", {
-      inicio: fechaInicioInput.value,
-      fin: fechaFinInput.value
-    });
-  }
-  
-  // Cargar áreas y auditores disponibles
-  cargarTodasLasAreas();
-  cargarAuditores();
-  
-  // Configurar event listeners para filtros
-  const aplicarFiltrosBtn = document.getElementById('aplicar-filtros-reportes');
-  if (aplicarFiltrosBtn) {
-    aplicarFiltrosBtn.addEventListener('click', function() {
-      console.log("🔍 Aplicando filtros...");
-      cargarReportes();
-    });
-  }
-  
-  // Cargar reportes automáticamente al abrir la sección
-  setTimeout(() => {
-    if (document.getElementById('reportes').classList.contains('active')) {
-      console.log("📊 Cargando reportes iniciales...");
-      cargarReportes();
+    // =============================================
+    // 1. VERIFICACIÓN Y CARGA DE SESIÓN EXISTENTE
+    // =============================================
+    console.log('🔍 Verificando sesión existente...');
+    const sesionCargada = verificarAutenticacionAlInicio();
+    
+    if (sesionCargada) {
+        console.log('✅ Sesión cargada exitosamente');
+        // La sesión se restauró automáticamente en verificarAutenticacionAlInicio()
+    } else {
+        console.log('🔐 No hay sesión activa, mostrando pantalla de login...');
+        document.getElementById('login').classList.add('active');
+        document.getElementById('main-app').style.display = 'none';
     }
-  }, 1000);
-}
-            // Configurar fecha actual
-            const today = new Date();
-            document.getElementById('fecha-auditoria').valueAsDate = today;
-            document.getElementById('filtro-fecha-inicio-reporte').valueAsDate = new Date(today.getFullYear(), today.getMonth(), 1);
-            document.getElementById('filtro-fecha-fin-reporte').valueAsDate = today;
-            document.getElementById('fecha-inicio-exportar').valueAsDate = new Date(today.getFullYear(), today.getMonth(), 1);
-            document.getElementById('fecha-fin-exportar').valueAsDate = today;
+    
+    // =============================================
+    // 2. INICIALIZACIÓN DE BASE DE DATOS LOCAL
+    // =============================================
+    console.log('💾 Inicializando base de datos local...');
+    try {
+        await initDB();
+        console.log('✅ Base de datos local inicializada');
+    } catch (error) {
+        console.error('❌ Error inicializando base de datos:', error);
+        alert('Error al inicializar el almacenamiento local. Algunas funciones pueden no estar disponibles.');
+    }
+    
+    // =============================================
+    // 3. CONFIGURACIÓN DE FECHAS POR DEFECTO
+    // =============================================
+    console.log('📅 Configurando fechas por defecto...');
+    const today = new Date();
+    
+    // Fecha de auditoría (hoy)
+    document.getElementById('fecha-auditoria').valueAsDate = today;
+    
+    // Fechas para reportes (últimos 90 días)
+    const defaultStartDate = new Date();
+    defaultStartDate.setDate(today.getDate() - 90);
+    
+    document.getElementById('filtro-fecha-inicio-reporte').valueAsDate = defaultStartDate;
+    document.getElementById('filtro-fecha-fin-reporte').valueAsDate = today;
+    
+    // Fechas para exportar (mes actual)
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    document.getElementById('fecha-inicio-exportar').valueAsDate = firstDayOfMonth;
+    document.getElementById('fecha-fin-exportar').valueAsDate = today;
+    
+    console.log('✅ Fechas configuradas correctamente');
+    
+    // =============================================
+    // 4. CONFIGURACIÓN DE EVENT LISTENERS
+    // =============================================
+    
+    // 4.1. Navegación entre páginas
+    console.log('🔗 Configurando navegación...');
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = this.getAttribute('data-page');
+            console.log(`📄 Navegando a: ${page}`);
             
-            // Inicializar base de datos local
-            await initDB();
+            // Mostrar página
+            showPage(page);
             
-            // Event listeners para navegación
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const page = this.getAttribute('data-page');
-                    showPage(page);
-                    
-                    // Actualizar navegación activa
-                    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Cargar datos del dashboard si es necesario
-                    if (page === 'dashboard') {
-                        cargarDashboard();
-                    } else if (page === 'reportes') {
-                        cargarTodasLasAreas();
-                        cargarAuditores();
-                        cargarReportes();
-                    } else if (page === 'exportar') {
-                        cargarTodasLasAreas();
-                    } else if (page === 'cuenta') {
-                        loadProfile();
-                    } else if (page === 'guardadas') {
-                        cargarAuditoriasGuardadas();
+            // Actualizar navegación activa
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Cargar datos específicos de cada página
+            manejarCambioDePagina(page);
+            
+            // Guardar sesión con la página actual
+            if (currentUser) {
+                guardarSesion();
+            }
+        });
+    });
+    
+    // 4.2. Sistema de login/registro
+    console.log('🔑 Configurando sistema de autenticación...');
+    
+    // Event listener para login
+    document.getElementById('btn-login').addEventListener('click', function() {
+        console.log('👤 Intentando login...');
+        login();
+    });
+    
+    // Event listener para registro
+    document.getElementById('btn-register').addEventListener('click', function() {
+        console.log('📝 Intentando registro...');
+        register();
+    });
+    
+    // Event listener para logout
+    document.getElementById('btn-logout').addEventListener('click', function() {
+        console.log('🚪 Solicitando logout...');
+        logout();
+    });
+    
+    // Tabs de login/registro
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const tabId = this.getAttribute('data-tab');
+            console.log(`📑 Cambiando a tab: ${tabId}`);
+            
+            // Actualizar tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Mostrar formulario correspondiente
+            if (tabId === 'login') {
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('register-form').style.display = 'none';
+            } else {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('register-form').style.display = 'block';
+            }
+        });
+    });
+    
+    // 4.3. Auditoría
+    console.log('📋 Configurando módulo de auditoría...');
+    
+    // Iniciar auditoría
+    document.getElementById('iniciar-auditoria').addEventListener('click', function() {
+        console.log('🎯 Iniciando nueva auditoría...');
+        iniciarAuditoria();
+    });
+    
+    // Finalizar auditoría
+    document.getElementById('finalizar-auditoria').addEventListener('click', function() {
+        console.log('🏁 Finalizando auditoría...');
+        finalizarAuditoria();
+    });
+    
+    // Guardar progreso
+    document.getElementById('guardar-progreso').addEventListener('click', function() {
+        console.log('💾 Guardando progreso...');
+        guardarProgreso();
+    });
+    
+    // 4.4. Dashboard y Reportes
+    console.log('📊 Configurando módulos de análisis...');
+    
+    // Filtros del dashboard
+    document.getElementById('aplicar-filtros').addEventListener('click', function() {
+        console.log('🔍 Aplicando filtros del dashboard...');
+        cargarDashboard();
+    });
+    
+    // Filtros de reportes
+    document.getElementById('aplicar-filtros-reportes').addEventListener('click', function() {
+        console.log('🔍 Aplicando filtros de reportes...');
+        cargarReportes();
+    });
+    
+    // 4.5. Exportación de datos
+    document.getElementById('btn-exportar').addEventListener('click', function() {
+        console.log('📤 Solicitando exportación de datos...');
+        exportarDatos();
+    });
+    
+    // 4.6. Gestión de PDF
+    document.getElementById('ver-pdf').addEventListener('click', function() {
+        console.log('👁️ Solicitando visualización de PDF...');
+        const pdfUrl = document.getElementById('reporte-pdf-url').value;
+        mostrarPDF(pdfUrl);
+    });
+    
+    document.getElementById('generar-pdf').addEventListener('click', function() {
+        console.log('📄 Solicitando generación de PDF...');
+        generarPDF();
+    });
+    
+    // 4.7. Compartir reportes
+    document.getElementById('compartir-whatsapp').addEventListener('click', function() {
+        console.log('💬 Compartiendo por WhatsApp...');
+        const pdfUrl = document.getElementById('reporte-pdf-url').value;
+        const msg = encodeURIComponent(`Te comparto el reporte de auditoría: ${pdfUrl}`);
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+    });
+    
+    document.getElementById('compartir-email').addEventListener('click', function() {
+        console.log('📧 Compartiendo por correo...');
+        const pdfUrl = document.getElementById('reporte-pdf-url').value;
+        const subject = encodeURIComponent('Reporte de Auditoría PPR');
+        const body = encodeURIComponent(`Te comparto el reporte de auditoría:\n${pdfUrl}`);
+        window.open(`mailto:?subject=${subject}&body=${body}`, '_blank');
+    });
+    
+    // 4.8. Cambio de unidades (carga dinámica de áreas)
+    document.getElementById('unidad-negocio').addEventListener('change', function() {
+        console.log('🏭 Cambio de unidad detectado, cargando áreas...');
+        cargarAreasPorUnidad();
+    });
+    
+    document.getElementById('filtro-unidad').addEventListener('change', function() {
+        console.log('🏭 Cambio de unidad en dashboard, cargando áreas...');
+        cargarAreasPorUnidadDashboard(this.value);
+    });
+    
+    // 4.9. Sincronización de datos offline
+    document.getElementById('btn-sync').addEventListener('click', function() {
+        console.log('🔄 Iniciando sincronización manual...');
+        syncOfflineData();
+    });
+    
+    // 4.10. Menú móvil
+    document.getElementById('menu-toggle').addEventListener('click', function() {
+        console.log('📱 Alternando menú móvil...');
+        const menu = document.getElementById('nav-menu');
+        menu.classList.toggle('active');
+        
+        // Cambiar icono según estado
+        const icon = this.querySelector('i');
+        if (menu.classList.contains('active')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        } else {
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-bars');
+        }
+    });
+    
+    // Cerrar menú al hacer clic en un enlace (para móviles)
+    document.querySelectorAll('#nav-menu .nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+            const menu = document.getElementById('nav-menu');
+            if (menu.classList.contains('active')) {
+                menu.classList.remove('active');
+                const icon = document.querySelector('.menu-toggle i');
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
+        });
+    });
+    
+    // =============================================
+    // 5. INICIALIZACIÓN DE COMPONENTES
+    // =============================================
+    console.log('🎨 Inicializando componentes...');
+    
+    // 5.1. Inicializar gráficos vacíos
+    inicializarGraficos();
+    console.log('📈 Gráficos inicializados');
+    
+    // 5.2. Cargar datos maestros
+    console.log('🗃️ Cargando datos maestros...');
+    
+    // Cargar todas las áreas disponibles
+    setTimeout(() => {
+        cargarTodasLasAreas();
+        console.log('📍 Áreas cargadas');
+    }, 1000);
+    
+    // Cargar lista de auditores
+    setTimeout(() => {
+        cargarAuditores();
+        console.log('👥 Auditores cargados');
+    }, 1500);
+    
+    // 5.3. Inicializar estado de conexión
+    updateConnectionStatus();
+    window.addEventListener('online', function() {
+        console.log('🌐 Conexión restablecida');
+        updateConnectionStatus();
+        
+        // Intentar sincronizar automáticamente
+        setTimeout(() => {
+            const pendingAudits = getPendingAudits();
+            pendingAudits.then(audits => {
+                if (audits.length > 0) {
+                    console.log(`🔄 ${audits.length} auditorías pendientes por sincronizar`);
+                    if (confirm(`Tienes ${audits.length} auditorías pendientes de sincronizar. ¿Deseas sincronizar ahora?`)) {
+                        syncOfflineData();
                     }
-                });
-            });
-            
-            // Event listener para iniciar auditoría
-            document.getElementById('iniciar-auditoria').addEventListener('click', iniciarAuditoria);
-            
-            // Event listener para finalizar auditoría
-            document.getElementById('finalizar-auditoria').addEventListener('click', finalizarAuditoria);
-            
-            // Event listener para login
-            document.getElementById('btn-login').addEventListener('click', login);
-            
-            // Event listener para registro
-            document.getElementById('btn-register').addEventListener('click', register);
-            
-            // Event listener para logout
-            document.getElementById('btn-logout').addEventListener('click', logout);
-            
-            // Event listener para tabs de login/registro
-            document.querySelectorAll('.tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    
-                    // Actualizar tabs
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Mostrar el formulario correspondiente
-                    if (tabId === 'login') {
-                        document.getElementById('login-form').style.display = 'block';
-                        document.getElementById('register-form').style.display = 'none';
-                    } else {
-                        document.getElementById('login-form').style.display = 'none';
-                        document.getElementById('register-form').style.display = 'block';
-                    }
-                });
-            });
-            
-            // Event listener para filtros de reportes
-            document.getElementById('aplicar-filtros-reportes').addEventListener('click', cargarReportes);
-            
-            // Event listener para exportar datos
-            document.getElementById('btn-exportar').addEventListener('click', exportarDatos);
-            
-            // Event listener para ver PDF
-            document.getElementById('ver-pdf').addEventListener('click', function() {
-                const pdfUrl = document.getElementById('reporte-pdf-url').value;
-                mostrarPDF(pdfUrl);
-            });
-            
-            // Event listener para generar PDF
-            document.getElementById('generar-pdf').addEventListener('click', generarPDF);
-            
-            // Event listener para filtros dashboard
-            document.getElementById('aplicar-filtros').addEventListener('click', cargarDashboard);
-            
-            // Event listener para cambio de unidad (carga áreas)
-            document.getElementById('unidad-negocio').addEventListener('change', cargarAreasPorUnidad);
-            document.getElementById('filtro-unidad').addEventListener('change', function() {
-                cargarAreasPorUnidadDashboard(this.value);
-            });
-            
-            // Inicializar gráficos vacíos
-            inicializarGraficos();
-            
-            // Cargar todas las áreas al iniciar
-            cargarTodasLasAreas();
-            cargarAuditores();
-            
-            // Inicializar estado de conexión
-            updateConnectionStatus();
-            window.addEventListener('online', updateConnectionStatus);
-            window.addEventListener('offline', updateConnectionStatus);
-            
-            // Botón de sincronización manual
-            document.getElementById('btn-sync').addEventListener('click', syncOfflineData);
-            
-            // Botón para guardar progreso
-            document.getElementById('guardar-progreso').addEventListener('click', guardarProgreso);
-
-            // Toggle menu móvil
-            document.getElementById('menu-toggle').addEventListener('click', function() {
-                const menu = document.getElementById('nav-menu');
-                menu.classList.toggle('active');
-                
-                // Cambiar icono según estado
-                const icon = this.querySelector('i');
-                if (menu.classList.contains('active')) {
-                    icon.classList.remove('fa-bars');
-                    icon.classList.add('fa-times');
-                } else {
-                    icon.classList.remove('fa-times');
-                    icon.classList.add('fa-bars');
                 }
             });
+        }, 2000);
+    });
+    
+    window.addEventListener('offline', function() {
+        console.log('📵 Conexión perdida');
+        updateConnectionStatus();
+    });
+    
+    // 5.4. Configurar manejo de errores global
+    window.addEventListener('error', function(e) {
+        console.error('❌ Error global capturado:', e.error);
+    });
+    
+    window.addEventListener('unhandledrejection', function(e) {
+        console.error('❌ Promise rechazada no manejada:', e.reason);
+    });
+    
+    // =============================================
+    // 6. INICIALIZACIÓN COMPLETADA
+    // =============================================
+    console.log('🎉 Aplicación inicializada correctamente');
+    console.log('=========================================');
+    console.log('Estado actual:');
+    console.log('- Usuario:', currentUser ? currentUser.name : 'No autenticado');
+    console.log('- Página activa:', document.querySelector('.page-section.active')?.id || 'login');
+    console.log('- Conexión:', navigator.onLine ? 'En línea' : 'Sin conexión');
+    console.log('- Base de datos:', db ? 'Inicializada' : 'No disponible');
+    console.log('=========================================');
+    
+    // Mostrar notificación de bienvenida si hay sesión
+    if (currentUser) {
+        setTimeout(() => {
+            console.log('👋 Bienvenido de nuevo, ' + currentUser.name);
+        }, 1000);
+    }
+});
+
+// =============================================
+// FUNCIÓN AUXILIAR: MANEJO DE CAMBIOS DE PÁGINA
+// =============================================
+function manejarCambioDePagina(pageId) {
+    console.log(`🔄 Procesando cambio a página: ${pageId}`);
+    
+    switch(pageId) {
+        case 'dashboard':
+            console.log('📊 Cargando dashboard...');
+            setTimeout(() => {
+                cargarDashboard();
+            }, 300);
+            break;
             
-            // Cerrar menú al hacer clic en un enlace (para móviles)
-            document.querySelectorAll('#nav-menu .nav-link').forEach(link => {
-                link.addEventListener('click', function() {
-                    const menu = document.getElementById('nav-menu');
-                    if (menu.classList.contains('active')) {
-                        menu.classList.remove('active');
-                        const icon = document.querySelector('.menu-toggle i');
-                        icon.classList.remove('fa-times');
-                        icon.classList.add('fa-bars');
+        case 'reportes':
+            console.log('📋 Cargando reportes...');
+            setTimeout(() => {
+                cargarTodasLasAreas();
+                cargarAuditores();
+                cargarReportes();
+            }, 300);
+            break;
+            
+        case 'exportar':
+            console.log('📤 Cargando módulo de exportación...');
+            setTimeout(() => {
+                cargarTodasLasAreas();
+            }, 300);
+            break;
+            
+        case 'cuenta':
+            console.log('👤 Cargando gestión de cuenta...');
+            setTimeout(() => {
+                if (currentUser) {
+                    loadProfile();
+                }
+            }, 300);
+            break;
+            
+        case 'guardadas':
+            console.log('💾 Cargando auditorías guardadas...');
+            setTimeout(() => {
+                cargarAuditoriasGuardadas();
+            }, 300);
+            break;
+            
+        case 'inicio':
+            console.log('🏠 Cargando página de inicio...');
+            // No requiere carga adicional
+            break;
+            
+        case 'auditoria':
+            console.log('📝 Cargando módulo de auditoría...');
+            // La auditoría se carga cuando se inicia una nueva o se continúa una guardada
+            break;
+            
+        default:
+            console.log('🔍 Página no reconocida:', pageId);
+    }
+}
+
+// =============================================
+// FUNCIÓN AUXILIAR: INICIALIZAR GRÁFICOS
+// =============================================
+function inicializarGraficos() {
+    console.log('📊 Inicializando gráficos...');
+    
+    try {
+        const ctxDistribucion = document.getElementById('chart-distribucion').getContext('2d');
+        const ctxPreguntas = document.getElementById('chart-preguntas').getContext('2d');
+        const ctxAreas = document.getElementById('chart-areas').getContext('2d');
+        
+        // Gráfico de distribución (doughnut)
+        if (ctxDistribucion) {
+            chartDistribucion = new Chart(ctxDistribucion, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cumple', 'Cumple Parcial', 'No Cumple', 'No Aplica'],
+                    datasets: [{
+                        data: [0, 0, 0, 0],
+                        backgroundColor: [
+                            'rgba(39, 174, 96, 0.8)',
+                            'rgba(243, 156, 18, 0.8)',
+                            'rgba(231, 76, 60, 0.8)',
+                            'rgba(155, 89, 182, 0.8)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
                     }
-                });
+                }
             });
-        });
+        }
+        
+        // Gráfico de preguntas (bar)
+        if (ctxPreguntas) {
+            chartPreguntas = new Chart(ctxPreguntas, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '% Cumplimiento',
+                        data: [],
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Gráfico de áreas (bar)
+        if (ctxAreas) {
+            chartAreas = new Chart(ctxAreas, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: '% Cumplimiento',
+                        data: [],
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        console.log('✅ Gráficos inicializados correctamente');
+    } catch (error) {
+        console.error('❌ Error inicializando gráficos:', error);
+    }
+}
 
         // Inicializar IndexedDB
 function initDB() {
@@ -2401,7 +2709,7 @@ async function cargarDashboard() {
     }
 }
 
-// Función para finalizar auditoría - VERSIÓN CORREGIDA
+// FUNCIÓN MEJORADA PARA FINALIZAR AUDITORÍA
 async function finalizarAuditoria() {
   const btn = document.getElementById('finalizar-auditoria');
   const originalText = btn.innerHTML;
@@ -2409,43 +2717,51 @@ async function finalizarAuditoria() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
   
   try {
-    const preguntasContestadas = Object.keys(respuestas).length;
+    if (!auditorData || !preguntasPorArea || preguntasPorArea.length === 0) {
+      throw new Error("❌ Datos de auditoría incompletos. Inicia una nueva auditoría.");
+    }
+    
+    const preguntasContestadas = Object.keys(respuestas).filter(id => 
+      respuestas[id] && respuestas[id].estado && respuestas[id].estado !== 'no_respondida'
+    ).length;
+    
     if (preguntasContestadas < preguntasPorArea.length) {
-      if (!confirm('No has respondido todas las preguntas. ¿Estás seguro de que quieres finalizar la auditoría?')) {
+      const confirmar = confirm(`Tienes ${preguntasPorArea.length - preguntasContestadas} preguntas sin responder. ¿Estás seguro de que quieres finalizar la auditoría?`);
+      if (!confirmar) {
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
         return;
       }
     }
     
-    // Verificar evidencias para cumplimiento parcial y no cumplimiento
     for (const pregunta of preguntasPorArea) {
       const respuesta = respuestas[pregunta.id] || {};
       if ((respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') && 
-          !respuesta.evidenciaUrl && !respuesta.observaciones) {
-        alert(`Para la pregunta ${pregunta.id} ("${pregunta.texto}"), debes adjuntar evidencia fotográfica o agregar observaciones para justificar el cumplimiento parcial o no cumplimiento.`);
+          !respuesta.evidenciaUrl && !respuesta.evidenciaBase64 && !respuesta.observaciones) {
+        alert(`⚠️ Para la pregunta ${pregunta.id} ("${pregunta.texto}"), debes adjuntar evidencia fotográfica O agregar observaciones para justificar el cumplimiento parcial o no cumplimiento.`);
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
         return;
       }
     }
     
-    // Preparar datos para enviar
-    const preguntasData = [];
+    console.log('🔄 Procesando imágenes base64...');
+    await procesarImagenesBase64ParaEnvio();
+    console.log('✅ Imágenes procesadas, preparando datos...');
     
-    preguntasPorArea.forEach(pregunta => {
+    const preguntasData = preguntasPorArea.map(pregunta => {
       const respuesta = respuestas[pregunta.id] || {};
-      preguntasData.push({
+      return {
         id: pregunta.id,
         texto: pregunta.texto,
         categoria: pregunta.categoria,
         estado: respuesta.estado || "no_respondida",
         evidenciaUrl: respuesta.evidenciaUrl || null,
+        evidenciaBase64: respuesta.evidenciaBase64 || null,
         observaciones: respuesta.observaciones || ""
-      });
+      };
     });
     
-    // Calcular porcentajes (excluyendo "No aplica")
     const totalPreguntas = preguntasData.length;
     const noAplicaCount = preguntasData.filter(p => p.estado === "no_aplica").length;
     const totalPreguntasAplicables = totalPreguntas - noAplicaCount;
@@ -2459,10 +2775,12 @@ async function finalizarAuditoria() {
     const porcNoCumple = totalPreguntasAplicables > 0 ? Math.round((noCumpleCount / totalPreguntasAplicables) * 100) : 0;
     const porcNoAplica = Math.round((noAplicaCount / totalPreguntas) * 100);
     
-    // Verificar conexión para envío
+    console.log('📊 Porcentajes calculados:', { porcCumple, porcParcial, porcNoCumple, porcNoAplica });
+    
     if (!navigator.onLine) {
-      // Guardar en base de datos local como "pending"
-      await saveAuditToLocalDB({
+      console.log('🌐 Sin conexión, guardando localmente...');
+      
+      const pendingId = await saveAuditToLocalDB({
         auditorData: auditorData,
         respuestas: respuestas,
         preguntas: preguntasData,
@@ -2472,12 +2790,19 @@ async function finalizarAuditoria() {
         porcNoAplica: porcNoAplica
       }, "pending");
       
-      alert('Auditoría guardada localmente. Se enviará automáticamente cuando se restablezca la conexión.');
+      auditorData = {};
+      respuestas = {};
+      preguntasPorArea = [];
+      guardarSesion();
+      
+      alert('✅ Auditoría guardada localmente. Se enviará automáticamente cuando se restablezca la conexión.');
       showPage('inicio');
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
       return;
     }
+    
+    console.log('📡 Enviando auditoría al servidor...');
     
     const payload = {
       action: "submitAudit",
@@ -2500,15 +2825,20 @@ async function finalizarAuditoria() {
     const data = await response.json();
     
     if (data.status === "success") {
+      console.log('✅ Auditoría enviada exitosamente');
+      
       auditorData.auditId = data.auditId;
+      
+      auditorData = {};
+      respuestas = {};
+      preguntasPorArea = [];
+      guardarSesion();
       
       if (data.pdfUrl) {
         document.getElementById('reporte-pdf-url').value = data.pdfUrl;
-        
-        // Pequeño retraso para asegurar que el PDF esté disponible
         setTimeout(() => {
           mostrarPDF(data.pdfUrl);
-        }, 3000); // Aumentado a 3 segundos para dar más tiempo
+        }, 3000);
       }
       
       generarDetalleReporte();
@@ -2519,16 +2849,69 @@ async function finalizarAuditoria() {
       
       cargarReportes();
       
-      alert('¡Auditoría completada con éxito! El reporte se ha generado correctamente.');
+      alert('🎉 ¡Auditoría completada con éxito! El reporte se ha generado correctamente.');
     } else {
       throw new Error(data.message || "Error en el servidor");
     }
   } catch (error) {
-    alert('Error al enviar la auditoría: ' + error.message);
+    console.error('❌ Error al enviar la auditoría:', error);
+    alert('❌ Error al enviar la auditoría: ' + error.message);
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-check-circle"></i> Finalizar Auditoría';
   }
+}
+
+// FUNCIÓN CRÍTICA: PROCESAR IMÁGENES BASE64 PARA ENVÍO
+async function procesarImagenesBase64ParaEnvio() {
+  const imagenesParaProcesar = [];
+  
+  for (const preguntaId in respuestas) {
+    const respuesta = respuestas[preguntaId];
+    if (respuesta && respuesta.evidenciaBase64 && !respuesta.evidenciaUrl) {
+      imagenesParaProcesar.push({
+        preguntaId: preguntaId,
+        base64: respuesta.evidenciaBase64
+      });
+    }
+  }
+  
+  console.log(`🖼️ Procesando ${imagenesParaProcesar.length} imágenes base64...`);
+  
+  const MAX_CONCURRENT_UPLOADS = 3;
+  for (let i = 0; i < imagenesParaProcesar.length; i += MAX_CONCURRENT_UPLOADS) {
+    const chunk = imagenesParaProcesar.slice(i, i + MAX_CONCURRENT_UPLOADS);
+    const promises = chunk.map(async (imagen) => {
+      try {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: "uploadImage",
+            image: imagen.base64
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === "success") {
+          respuestas[imagen.preguntaId].evidenciaUrl = data.url;
+          console.log(`✅ Imagen subida para pregunta ${imagen.preguntaId}`);
+        } else {
+          console.warn(`⚠️ No se pudo subir imagen para pregunta ${imagen.preguntaId}:`, data.message);
+        }
+      } catch (error) {
+        console.error(`❌ Error subiendo imagen para pregunta ${imagen.preguntaId}:`, error);
+      }
+    });
+    
+    await Promise.all(promises);
+    
+    if (i + MAX_CONCURRENT_UPLOADS < imagenesParaProcesar.length) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+  
+  console.log('✅ Todas las imágenes procesadas');
 }
 
 function generarDetalleReporte() {
@@ -2685,9 +3068,11 @@ async function cargarAuditoriasGuardadas() {
     }
 }
 
-// FUNCIÓN MEJORADA - PEGAR EN EL FRONTEND
+// FUNCIÓN MEJORADA PARA CARGAR AUDITORÍA GUARDADA
 async function cargarAuditoriaGuardada(auditId) {
   try {
+    console.log(`🔄 Cargando auditoría guardada ID: ${auditId}`);
+    
     const transaction = db.transaction([STORE_AUDITS], "readonly");
     const store = transaction.objectStore(STORE_AUDITS);
     const request = store.get(Number(auditId));
@@ -2695,17 +3080,18 @@ async function cargarAuditoriaGuardada(auditId) {
     request.onsuccess = async (event) => {
       const audit = event.target.result;
       if (!audit) {
-        alert("Auditoría no encontrada");
+        alert("❌ Auditoría no encontrada");
         return;
       }
       
-      // Cargar datos en las variables globales
+      console.log('✅ Auditoría encontrada:', audit);
+      
       auditorData = audit.auditorData;
       respuestas = audit.respuestas || {};
       preguntasPorArea = audit.preguntasPorArea || [];
       
-      // MEJORA: Si no hay preguntas, cargarlas del área
       if (preguntasPorArea.length === 0 && auditorData.area) {
+        console.log('📋 Cargando preguntas para área:', auditorData.area);
         try {
           const response = await fetch(SCRIPT_URL, {
             method: 'POST',
@@ -2719,71 +3105,136 @@ async function cargarAuditoriaGuardada(auditId) {
           
           if (data.status === "success") {
             preguntasPorArea = data.preguntas;
-            // Guardar las preguntas en la auditoría local
             await actualizarPreguntasEnAuditoria(auditId, data.preguntas);
+            console.log(`✅ ${preguntasPorArea.length} preguntas cargadas`);
+          } else {
+            throw new Error(data.message || "Error al cargar preguntas");
           }
         } catch (error) {
-          console.error("Error cargando preguntas:", error);
+          console.error("❌ Error cargando preguntas:", error);
+          alert("Error al cargar las preguntas: " + error.message);
+          return;
         }
       }
       
-      // Actualizar UI
-      document.getElementById('current-auditor').textContent = auditorData.nombre;
-      document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
-      document.getElementById('current-area').textContent = formatName(auditorData.area);
-      document.getElementById('current-date').textContent = auditorData.fecha;
-      
-      // Generar preguntas con respuestas cargadas
+      actualizarUIauditoria();
       generarPreguntas();
       
-      // Para cada pregunta, cargar la respuesta guardada
       setTimeout(() => {
-        preguntasPorArea.forEach(pregunta => {
-          const respuesta = respuestas[pregunta.id];
-          if (respuesta) {
-            // Marcar el radio button
-            const radio = document.querySelector(`input[name="pregunta-${pregunta.id}"][value="${respuesta.estado}"]`);
-            if (radio) {
-              radio.checked = true;
-              const opcion = radio.closest('.opcion');
-              if (opcion) {
-                opcion.classList.add('selected');
-              }
-            }
-            
-            // Cargar evidencia si existe
-            if (respuesta.evidenciaBase64 || respuesta.evidenciaUrl) {
-              const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
-              if (cameraPreview) {
-                const imgSrc = respuesta.evidenciaBase64 || respuesta.evidenciaUrl;
-                cameraPreview.innerHTML = `<img src="${imgSrc}" alt="Evidencia fotográfica">`;
-              }
-            }
-            
-            // Cargar observaciones
-            const observaciones = document.getElementById(`observaciones-${pregunta.id}`);
-            if (observaciones && respuesta.observaciones) {
-              observaciones.value = respuesta.observaciones;
-            }
-            
-            // Mostrar sección de evidencia si es necesario
-            if (respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') {
-              const evidenciaSection = document.getElementById(`evidencia-${pregunta.id}`);
-              if (evidenciaSection) {
-                evidenciaSection.style.display = 'block';
-              }
-            }
-          }
-        });
-      }, 500);
+        cargarRespuestasGuardadasEnUI();
+        console.log('✅ Respuestas cargadas en UI');
+      }, 800);
       
-      // Mostrar sección de auditoría
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      document.querySelector('.nav-link[data-page="auditoria"]').classList.add('active');
       showPage('auditoria');
+      
+      guardarSesion();
+    };
+    
+    request.onerror = (event) => {
+      console.error('❌ Error al acceder a la base de datos:', event.target.error);
+      alert('Error al cargar la auditoría: ' + event.target.error);
     };
     
   } catch (error) {
+    console.error('❌ Error al cargar auditoría:', error);
     alert('Error al cargar auditoría: ' + error.message);
   }
+}
+
+// FUNCIÓN AUXILIAR PARA ACTUALIZAR UI DE AUDITORÍA
+function actualizarUIauditoria() {
+  document.getElementById('current-auditor').textContent = auditorData.nombre;
+  document.getElementById('current-unidad').textContent = formatName(auditorData.unidad);
+  document.getElementById('current-area').textContent = formatName(auditorData.area);
+  document.getElementById('current-date').textContent = auditorData.fecha;
+  
+  document.getElementById('reporte-auditor').textContent = auditorData.nombre;
+  document.getElementById('reporte-unidad').textContent = formatName(auditorData.unidad);
+  document.getElementById('reporte-area').textContent = formatName(auditorData.area);
+  document.getElementById('reporte-fecha').textContent = auditorData.fecha;
+}
+
+// FUNCIÓN MEJORADA PARA CARGAR RESPUESTAS EN LA UI
+function cargarRespuestasGuardadasEnUI() {
+  if (!preguntasPorArea || !respuestas) {
+    console.warn('⚠️ No hay preguntas o respuestas para cargar');
+    return;
+  }
+  
+  let respuestasCargadas = 0;
+  
+  preguntasPorArea.forEach(pregunta => {
+    const respuesta = respuestas[pregunta.id];
+    if (respuesta && respuesta.estado) {
+      respuestasCargadas++;
+      
+      const radio = document.querySelector(`input[name="pregunta-${pregunta.id}"][value="${respuesta.estado}"]`);
+      if (radio) {
+        radio.checked = true;
+        const opcion = radio.closest('.opcion');
+        if (opcion) {
+          opcion.parentElement.querySelectorAll('.opcion').forEach(o => o.classList.remove('selected'));
+          opcion.classList.add('selected');
+        }
+      }
+      
+      const cameraPreview = document.getElementById(`camera-preview-${pregunta.id}`);
+      if (cameraPreview && (respuesta.evidenciaBase64 || respuesta.evidenciaUrl)) {
+        const imgSrc = respuesta.evidenciaBase64 || respuesta.evidenciaUrl;
+        cameraPreview.innerHTML = `<img src="${imgSrc}" alt="Evidencia fotográfica" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+      }
+      
+      const observaciones = document.getElementById(`observaciones-${pregunta.id}`);
+      if (observaciones && respuesta.observaciones) {
+        observaciones.value = respuesta.observaciones;
+      }
+      
+      const evidenciaSection = document.getElementById(`evidencia-${pregunta.id}`);
+      if (evidenciaSection) {
+        if (respuesta.estado === 'parcial' || respuesta.estado === 'no_cumple') {
+          evidenciaSection.style.display = 'block';
+        } else {
+          evidenciaSection.style.display = 'none';
+        }
+      }
+    }
+  });
+  
+  console.log(`✅ ${respuestasCargadas} respuestas cargadas en la UI`);
+}
+
+// FUNCIÓN AUXILIAR PARA ACTUALIZAR PREGUNTAS EN AUDITORÍA GUARDADA
+async function actualizarPreguntasEnAuditoria(auditId, preguntas) {
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction([STORE_AUDITS], "readwrite");
+    const store = transaction.objectStore(STORE_AUDITS);
+    const request = store.get(Number(auditId));
+    
+    request.onsuccess = (event) => {
+      const audit = event.target.result;
+      if (audit) {
+        audit.preguntasPorArea = preguntas;
+        const updateRequest = store.put(audit);
+        updateRequest.onsuccess = () => {
+          console.log('✅ Preguntas actualizadas en auditoría guardada');
+          resolve();
+        };
+        updateRequest.onerror = (e) => {
+          console.error('❌ Error actualizando preguntas:', e.target.error);
+          reject(e.target.error);
+        };
+      } else {
+        reject(new Error("Auditoría no encontrada para actualizar"));
+      }
+    };
+    
+    request.onerror = (event) => {
+      console.error('❌ Error accediendo a auditoría:', event.target.error);
+      reject(event.target.error);
+    };
+  });
 }
 
 // FUNCIÓN AUXILIAR - AGREGAR AL FRONTEND
@@ -2844,6 +3295,9 @@ async function login() {
     } catch (error) {
         showMessage('Error de conexión: ' + error.message, 'error');
     }
+    // En la función login, después de currentUser = data.user;
+    guardarSesion();
+    iniciarAutoGuardado();
 }
 
         // Registro
@@ -2896,13 +3350,26 @@ async function register() {
     }
 }
 
-        // Logout
 function logout() {
-    currentUser = null;
+  if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+    limpiarSesion();
     document.getElementById('main-app').style.display = 'none';
     document.getElementById('login').classList.add('active');
     document.getElementById('login-email').value = '';
     document.getElementById('login-password').value = '';
+    
+    const messageContainer = document.getElementById('login-message');
+    messageContainer.innerHTML = `
+      <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <span>Sesión cerrada correctamente</span>
+      </div>
+    `;
+    
+    setTimeout(() => {
+      messageContainer.innerHTML = '';
+    }, 3000);
+  }
 }
 
         // Mostrar mensaje en login
@@ -4242,50 +4709,6 @@ function renderAreasSelect(selectElement, areas) {
     });
 }
 
-        // Función para marcar todas las preguntas restantes como "No Aplica"
-function marcarRestantesNoAplica() {
-    if (!confirm('¿Estás seguro de que deseas marcar todas las preguntas no respondidas como "No Aplica"? Esta acción no se puede deshacer.')) {
-        return;
-    }
-    
-    let contador = 0;
-    
-    preguntasPorArea.forEach(pregunta => {
-        // Solo marcar si no tiene respuesta
-        if (!respuestas[pregunta.id] || !respuestas[pregunta.id].estado) {
-            contador++;
-            
-            // Actualizar objeto de respuestas
-            if (!respuestas[pregunta.id]) respuestas[pregunta.id] = {};
-            respuestas[pregunta.id].estado = 'no_aplica';
-            
-            // Actualizar interfaz
-            const radio = document.querySelector(`input[name="pregunta-${pregunta.id}"][value="no_aplica"]`);
-            if (radio) {
-                radio.checked = true;
-                
-                // Marcar visualmente la opción
-                const opcion = radio.closest('.opcion');
-                if (opcion) {
-                    opcion.classList.add('selected');
-                }
-            }
-            
-            // Ocultar sección de evidencia
-            const evidenciaSection = document.getElementById(`evidencia-${pregunta.id}`);
-            if (evidenciaSection) {
-                evidenciaSection.style.display = 'none';
-            }
-        }
-    });
-    
-    // Actualizar contadores de categorías
-    for (const categoria in preguntasPorCategoria) {
-        actualizarContadorCategoria(categoria);
-    }
-    
-    alert(`Se han marcado ${contador} preguntas como "No Aplica".`);
-}
         // Función para agregar botón "Marcar todo como No Aplica"
 function agregarBotonNoAplica() {
     const buttonContainer = document.createElement('div');
@@ -4386,6 +4809,145 @@ function actualizarContadorCategoria(categoria) {
             }
         }
     });
+}
+        // =============================================
+// SISTEMA DE PERSISTENCIA DE SESIÓN COMPLETO
+// =============================================
+
+// Función para guardar sesión en localStorage
+function guardarSesion() {
+  if (currentUser) {
+    const sessionData = {
+      user: currentUser,
+      timestamp: new Date().getTime(),
+      auditorData: auditorData,
+      respuestas: respuestas,
+      preguntasPorArea: preguntasPorArea,
+      currentPage: document.querySelector('.page-section.active')?.id || 'inicio'
+    };
+    
+    try {
+      localStorage.setItem('ppr_session', JSON.stringify(sessionData));
+      console.log('✅ Sesión guardada en localStorage');
+    } catch (error) {
+      console.warn('⚠️ No se pudo guardar la sesión:', error);
+    }
+  }
+}
+
+// Función para cargar sesión desde localStorage
+function cargarSesion() {
+  try {
+    const savedSession = localStorage.getItem('ppr_session');
+    if (savedSession) {
+      const sessionData = JSON.parse(savedSession);
+      
+      const sessionAge = new Date().getTime() - sessionData.timestamp;
+      const MAX_SESSION_AGE = 24 * 60 * 60 * 1000;
+      
+      if (sessionAge < MAX_SESSION_AGE) {
+        currentUser = sessionData.user;
+        auditorData = sessionData.auditorData || {};
+        respuestas = sessionData.respuestas || {};
+        preguntasPorArea = sessionData.preguntasPorArea || [];
+        
+        console.log('✅ Sesión recuperada de localStorage');
+        return {
+          success: true,
+          currentPage: sessionData.currentPage || 'inicio'
+        };
+      } else {
+        console.log('⚠️ Sesión expirada');
+        limpiarSesion();
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error cargando sesión:', error);
+    limpiarSesion();
+  }
+  
+  return { success: false, currentPage: 'inicio' };
+}
+
+// Función para limpiar sesión
+function limpiarSesion() {
+  try {
+    localStorage.removeItem('ppr_session');
+    console.log('🧹 Sesión limpiada');
+  } catch (error) {
+    console.warn('Error limpiando sesión:', error);
+  }
+  
+  currentUser = null;
+  auditorData = {};
+  respuestas = {};
+  preguntasPorArea = [];
+}
+
+// Función para verificar y restaurar autenticación al cargar la página
+function verificarAutenticacionAlInicio() {
+  const sessionResult = cargarSesion();
+  
+  if (sessionResult.success && currentUser) {
+    updateUserBar();
+    document.getElementById('user-name').textContent = currentUser.name;
+    document.getElementById('nombre-auditor').value = currentUser.name;
+    
+    document.getElementById('login').classList.remove('active');
+    document.getElementById('main-app').style.display = 'block';
+    
+    showPage(sessionResult.currentPage);
+    
+    iniciarAutoGuardado();
+    
+    console.log('🔐 Sesión restaurada automáticamente');
+    return true;
+  }
+  
+  return false;
+}
+
+// Función para iniciar el sistema de auto-guardado
+function iniciarAutoGuardado() {
+  setInterval(() => {
+    if (currentUser) {
+      guardarSesion();
+    }
+  }, 2 * 60 * 1000);
+  
+  window.addEventListener('beforeunload', () => {
+    if (currentUser) {
+      guardarSesion();
+    }
+  });
+  
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && currentUser) {
+      guardarSesion();
+    }
+  });
+  
+  console.log('🔄 Sistema de auto-guardado iniciado');
+}
+        // Si no tienes estas funciones, agrégalas también:
+function updateConnectionStatus() {
+    const statusIndicator = document.getElementById('sync-status-indicator');
+    const syncButton = document.getElementById('btn-sync');
+    
+    if (navigator.onLine) {
+        statusIndicator.className = 'sync-status sync-online';
+        syncButton.style.display = 'inline-block';
+    } else {
+        statusIndicator.className = 'sync-status sync-offline';
+        syncButton.style.display = 'none';
+    }
+}
+
+function showPage(pageId) {
+    document.querySelectorAll('.page-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    document.getElementById(pageId).classList.add('active');
 }
 </script>
 </body>
