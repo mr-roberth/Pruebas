@@ -3450,7 +3450,7 @@ function showPage(pageId) {
     document.getElementById(pageId).classList.add('active');
 }
 
-        // Iniciar proceso de auditoría
+// FUNCIÓN MEJORADA PARA INICIAR AUDITORÍA CON MEJOR MANEJO DE ERRORES
 async function iniciarAuditoria() {
     const nombre = document.getElementById('nombre-auditor').value;
     const unidad = document.getElementById('unidad-negocio').value;
@@ -3462,58 +3462,89 @@ async function iniciarAuditoria() {
         return;
     }
     
+    const btn = document.getElementById('iniciar-auditoria');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cargando preguntas...';
+    btn.disabled = true;
+    
     try {
-                // Verificar caché primero
-        const cacheKey = `preguntas-${area}`;
-        const cachedPreguntas = localStorage.getItem(cacheKey);
+        console.log(`🔄 Cargando preguntas para área: ${area}`);
         
-        if (cachedPreguntas) {
-            preguntasPorArea = JSON.parse(cachedPreguntas);
+        // Limpiar cache local para esta área
+        const cacheKey = `preguntas-${area}`;
+        localStorage.removeItem(cacheKey);
+        
+        const response = await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: "getPreguntasPorArea",
+                area: area
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status === "success") {
+            preguntasPorArea = data.preguntas;
+            console.log(`✅ ${preguntasPorArea.length} preguntas cargadas para ${area}`);
+            
+            // Guardar en cache local
+            localStorage.setItem(cacheKey, JSON.stringify(preguntasPorArea));
+            
+            auditorData = {
+                nombre: nombre,
+                unidad: unidad,
+                area: area,
+                fecha: fecha
+            };
+            
+            // Actualizar UI
+            document.getElementById('current-auditor').textContent = nombre;
+            document.getElementById('current-unidad').textContent = document.querySelector(`#unidad-negocio option[value="${unidad}"]`).textContent;
+            document.getElementById('current-area').textContent = document.querySelector(`#area-auditada option[value="${area}"]`).textContent;
+            document.getElementById('current-date').textContent = fecha;
+            
+            document.getElementById('reporte-auditor').textContent = nombre;
+            document.getElementById('reporte-unidad').textContent = document.querySelector(`#unidad-negocio option[value="${unidad}"]`).textContent;
+            document.getElementById('reporte-area').textContent = document.querySelector(`#area-auditada option[value="${area}"]`).textContent;
+            document.getElementById('reporte-fecha').textContent = fecha;
+            
+            generarPreguntas();
+            
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelector('.nav-link[data-page="auditoria"]').classList.add('active');
+            showPage('auditoria');
+            
         } else {
-            const response = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    action: "getPreguntasPorArea",
-                    area: area
-                })
-            });
+            // MEJOR MANEJO DE ERRORES
+            let mensajeError = data.message || "Error desconocido al cargar preguntas";
             
-            const data = await response.json();
-            
-            if (data.status === "success") {
-                preguntasPorArea = data.preguntas;
-                localStorage.setItem(cacheKey, JSON.stringify(preguntasPorArea));
-            } else {
-                throw new Error(data.message || "Error al cargar preguntas");
+            if (data.debug) {
+                console.error("Error detallado:", data.debug);
+                mensajeError += `\n\nColumnas disponibles: ${data.debug.columnasDisponibles ? data.debug.columnasDisponibles.slice(3).join(', ') : 'No disponible'}`;
             }
+            
+            throw new Error(mensajeError);
         }
+        
     } catch (error) {
-        alert('Error al cargar preguntas: ' + error.message);
-        return;
+        console.error('❌ Error al cargar preguntas:', error);
+        
+        let mensajeUsuario = `Error al cargar preguntas para el área "${area}": ${error.message}`;
+        
+        // Sugerencias específicas basadas en el error
+        if (error.message.includes("No se encontró configuración")) {
+            mensajeUsuario += "\n\n💡 SUGERENCIAS:\n" +
+                "• Verifica que el área esté correctamente escrita en la hoja 'Requisitos'\n" +
+                "• Asegúrate de que la columna tenga exactamente el mismo nombre\n" +
+                "• Contacta al administrador para verificar la configuración de áreas";
+        }
+        
+        alert(mensajeUsuario);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
-    
-    auditorData = {
-        nombre: nombre,
-        unidad: unidad,
-        area: area,
-        fecha: fecha
-    };
-    
-    document.getElementById('current-auditor').textContent = nombre;
-    document.getElementById('current-unidad').textContent = document.querySelector(`#unidad-negocio option[value="${unidad}"]`).textContent;
-    document.getElementById('current-area').textContent = document.querySelector(`#area-auditada option[value="${area}"]`).textContent;
-    document.getElementById('current-date').textContent = fecha;
-    
-    document.getElementById('reporte-auditor').textContent = nombre;
-    document.getElementById('reporte-unidad').textContent = document.querySelector(`#unidad-negocio option[value="${unidad}"]`).textContent;
-    document.getElementById('reporte-area').textContent = document.querySelector(`#area-auditada option[value="${area}"]`).textContent;
-    document.getElementById('reporte-fecha').textContent = fecha;
-    
-    generarPreguntas();
-    
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    document.querySelector('.nav-link[data-page="auditoria"]').classList.add('active');
-    showPage('auditoria');
 }
 
 // Función para generar preguntas agrupadas por prerrequisito - VERSIÓN MEJORADA
